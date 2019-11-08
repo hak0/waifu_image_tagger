@@ -13,6 +13,5 @@ fn test_rustnao() {
 
 fn main() {
     test_rustnao();
-    // Use a vec to save
     println!("Hello, world!");
 }
