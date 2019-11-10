@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 rexiv2 = "0.8.0"
 rustnao = "0.2.1"
+bincode = "1.2.0"
+crossbeam-channel = "0.3.8"
+notify = "=5.0.0-pre.1"

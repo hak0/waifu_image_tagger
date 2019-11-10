@@ -1,0 +1,699 @@
+desc: (none)
+cmd: ./target/release/waifu_image_tagger
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=693986
+mem_heap_B=145128
+mem_heap_extra_B=4072
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=1280921
+mem_heap_B=199741
+mem_heap_extra_B=19683
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=1997621
+mem_heap_B=266404
+mem_heap_extra_B=37988
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=2454178
+mem_heap_B=308868
+mem_heap_extra_B=49908
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=3110382
+mem_heap_B=369769
+mem_heap_extra_B=67207
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=3937283
+mem_heap_B=577924
+mem_heap_extra_B=88756
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=4767318
+mem_heap_B=655570
+mem_heap_extra_B=110054
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=5149125
+mem_heap_B=691509
+mem_heap_extra_B=119859
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=5716345
+mem_heap_B=744812
+mem_heap_extra_B=134364
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=6414425
+mem_heap_B=1072113
+mem_heap_extra_B=152327
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=6996351
+mem_heap_B=1126473
+mem_heap_extra_B=167487
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=7834966
+mem_heap_B=1193896
+mem_heap_extra_B=183960
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=8769337
+mem_heap_B=1286884
+mem_heap_extra_B=183996
+mem_stacks_B=0
+heap_tree=detailed
+n5: 1286884 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 608102 0x10E90A: _ZN5alloc7raw_vec19RawVec$LT$T$C$A$GT$16reserve_internal17haf0171d2603fdf69E.llvm.15252022325088643764 (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 608102 0x10E25E: <bincode::de::read::IoReader<R> as bincode::de::read::BincodeRead>::get_byte_buffer (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 608102 0x10E635: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_string (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 608102 0x10E340: <<&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_tuple::Access<R,O> as serde::de::SeqAccess>::next_element_seed (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 608102 0x10FAA7: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 608102 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 608102 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+        n1: 608102 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+         n1: 608102 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+          n1: 608102 0x118D72: {{closure}} (rt.rs:49)
+           n1: 608102 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+            n1: 608102 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+             n1: 608102 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+              n1: 608102 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+               n1: 608102 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                n0: 608102 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 524288 0x10E973: alloc::raw_vec::RawVec<T,A>::reserve (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 524288 0x10FAF9: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 524288 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 524288 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 524288 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 524288 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 524288 0x118D72: {{closure}} (rt.rs:49)
+        n1: 524288 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+         n1: 524288 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+          n1: 524288 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+           n1: 524288 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+            n1: 524288 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+             n0: 524288 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 101408 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 101408 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 101408 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 101408 0x118D72: {{closure}} (rt.rs:49)
+     n1: 101408 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 101408 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 101408 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 101408 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 101408 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 101408 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 52881 0x12CF04: alloc (alloc.rs:84)
+  n1: 52881 0x12CF04: alloc (alloc.rs:172)
+   n1: 52881 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 52881 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 52881 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 52881 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 52881 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 52881 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 52881 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 52881 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 52881 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 52881 0x118D72: {{closure}} (rt.rs:49)
+             n1: 52881 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 52881 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 52881 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 52881 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 52881 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 52881 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 205 in 13 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=14
+#-----------
+time=9176560
+mem_heap_B=1253032
+mem_heap_extra_B=183976
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=9909709
+mem_heap_B=1388300
+mem_heap_extra_B=184004
+mem_stacks_B=0
+heap_tree=detailed
+n5: 1388300 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 554725 0x10E90A: _ZN5alloc7raw_vec19RawVec$LT$T$C$A$GT$16reserve_internal17haf0171d2603fdf69E.llvm.15252022325088643764 (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 554725 0x10E25E: <bincode::de::read::IoReader<R> as bincode::de::read::BincodeRead>::get_byte_buffer (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 554725 0x10E635: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_string (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 554725 0x10E340: <<&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_tuple::Access<R,O> as serde::de::SeqAccess>::next_element_seed (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 554725 0x10FAA7: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 554725 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 554725 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+        n1: 554725 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+         n1: 554725 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+          n1: 554725 0x118D72: {{closure}} (rt.rs:49)
+           n1: 554725 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+            n1: 554725 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+             n1: 554725 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+              n1: 554725 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+               n1: 554725 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                n0: 554725 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 524288 0x10E973: alloc::raw_vec::RawVec<T,A>::reserve (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 524288 0x10FAF9: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 524288 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 524288 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 524288 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 524288 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 524288 0x118D72: {{closure}} (rt.rs:49)
+        n1: 524288 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+         n1: 524288 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+          n1: 524288 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+           n1: 524288 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+            n1: 524288 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+             n0: 524288 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 202784 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 202784 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 202784 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 202784 0x118D72: {{closure}} (rt.rs:49)
+     n1: 202784 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 202784 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 202784 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 202784 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 202784 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 202784 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 106298 0x12CF04: alloc (alloc.rs:84)
+  n1: 106298 0x12CF04: alloc (alloc.rs:172)
+   n1: 106298 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 106298 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 106298 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 106298 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 106298 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 106298 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 106298 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 106298 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 106298 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 106298 0x118D72: {{closure}} (rt.rs:49)
+             n1: 106298 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 106298 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 106298 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 106298 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 106298 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 106298 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 205 in 13 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=16
+#-----------
+time=10842720
+mem_heap_B=1320616
+mem_heap_extra_B=183976
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=12191951
+mem_heap_B=1591021
+mem_heap_extra_B=184003
+mem_stacks_B=0
+heap_tree=detailed
+n5: 1591021 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 524288 0x10E973: alloc::raw_vec::RawVec<T,A>::reserve (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 524288 0x10FAF9: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 524288 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 524288 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 524288 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 524288 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 524288 0x118D72: {{closure}} (rt.rs:49)
+        n1: 524288 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+         n1: 524288 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+          n1: 524288 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+           n1: 524288 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+            n1: 524288 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+             n0: 524288 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 447820 0x10E90A: _ZN5alloc7raw_vec19RawVec$LT$T$C$A$GT$16reserve_internal17haf0171d2603fdf69E.llvm.15252022325088643764 (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 447820 0x10E25E: <bincode::de::read::IoReader<R> as bincode::de::read::BincodeRead>::get_byte_buffer (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 447820 0x10E635: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_string (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 447820 0x10E340: <<&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_tuple::Access<R,O> as serde::de::SeqAccess>::next_element_seed (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 447820 0x10FAA7: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 447820 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 447820 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+        n1: 447820 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+         n1: 447820 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+          n1: 447820 0x118D72: {{closure}} (rt.rs:49)
+           n1: 447820 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+            n1: 447820 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+             n1: 447820 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+              n1: 447820 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+               n1: 447820 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                n0: 447820 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 405536 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 405536 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 405536 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 405536 0x118D72: {{closure}} (rt.rs:49)
+     n1: 405536 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 405536 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 405536 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 405536 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 405536 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 405536 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 213172 0x12CF04: alloc (alloc.rs:84)
+  n1: 213172 0x12CF04: alloc (alloc.rs:172)
+   n1: 213172 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 213172 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 213172 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 213172 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 213172 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 213172 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 213172 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 213172 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 213172 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 213172 0x118D72: {{closure}} (rt.rs:49)
+             n1: 213172 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 213172 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 213172 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 213172 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 213172 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 213172 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 205 in 13 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=18
+#-----------
+time=13125697
+mem_heap_B=1455784
+mem_heap_extra_B=183976
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=19
+#-----------
+time=14059666
+mem_heap_B=1455784
+mem_heap_extra_B=184008
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=16757149
+mem_heap_B=1996525
+mem_heap_extra_B=184035
+mem_stacks_B=0
+heap_tree=peak
+n5: 1996525 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 811040 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 811040 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 811040 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 811040 0x118D72: {{closure}} (rt.rs:49)
+     n1: 811040 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 811040 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 811040 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 811040 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 811040 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 811040 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 524288 0x10E973: alloc::raw_vec::RawVec<T,A>::reserve (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 524288 0x10FAF9: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 524288 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 524288 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 524288 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 524288 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 524288 0x118D72: {{closure}} (rt.rs:49)
+        n1: 524288 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+         n1: 524288 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+          n1: 524288 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+           n1: 524288 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+            n1: 524288 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+             n0: 524288 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 426918 0x12CF04: alloc (alloc.rs:84)
+  n1: 426918 0x12CF04: alloc (alloc.rs:172)
+   n1: 426918 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 426918 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 426918 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 426918 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 426918 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 426918 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 426918 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 426918 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 426918 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 426918 0x118D72: {{closure}} (rt.rs:49)
+             n1: 426918 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 426918 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 426918 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 426918 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 426918 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 426918 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 234074 0x10E90A: _ZN5alloc7raw_vec19RawVec$LT$T$C$A$GT$16reserve_internal17haf0171d2603fdf69E.llvm.15252022325088643764 (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 234074 0x10E25E: <bincode::de::read::IoReader<R> as bincode::de::read::BincodeRead>::get_byte_buffer (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 234074 0x10E635: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_string (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 234074 0x10E340: <<&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_tuple::Access<R,O> as serde::de::SeqAccess>::next_element_seed (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+     n1: 234074 0x10FAA7: <serde::de::impls::<impl serde::de::Deserialize for alloc::vec::Vec<T>>::deserialize::VecVisitor<T> as serde::de::Visitor>::visit_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+      n1: 234074 0x10E5B4: <&mut bincode::de::Deserializer<R,O> as serde::de::Deserializer>::deserialize_seq (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+       n1: 234074 0x10DFF7: bincode::deserialize_from (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+        n1: 234074 0x10EF23: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+         n1: 234074 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+          n1: 234074 0x118D72: {{closure}} (rt.rs:49)
+           n1: 234074 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+            n1: 234074 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+             n1: 234074 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+              n1: 234074 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+               n1: 234074 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                n0: 234074 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 205 in 13 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=21
+#-----------
+time=17573415
+mem_heap_B=1726190
+mem_heap_extra_B=184666
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=18390507
+mem_heap_B=1726120
+mem_heap_extra_B=186184
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=18858411
+mem_heap_B=1202657
+mem_heap_extra_B=186223
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=24
+#-----------
+time=19565226
+mem_heap_B=1177089
+mem_heap_extra_B=178775
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=20039901
+mem_heap_B=1159324
+mem_heap_extra_B=173836
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=20751639
+mem_heap_B=1133116
+mem_heap_extra_B=166348
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=21226338
+mem_heap_B=1115439
+mem_heap_extra_B=161433
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=21938281
+mem_heap_B=1089152
+mem_heap_extra_B=154168
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=22768717
+mem_heap_B=1058538
+mem_heap_extra_B=145382
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=23480579
+mem_heap_B=1032395
+mem_heap_extra_B=138021
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=24073730
+mem_heap_B=1010758
+mem_heap_extra_B=131810
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=24666995
+mem_heap_B=988737
+mem_heap_extra_B=125807
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=25141638
+mem_heap_B=971253
+mem_heap_extra_B=120907
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=26077745
+mem_heap_B=936773
+mem_heap_extra_B=111067
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=26779780
+mem_heap_B=910961
+mem_heap_extra_B=103695
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=27247884
+mem_heap_B=893689
+mem_heap_extra_B=98887
+mem_stacks_B=0
+heap_tree=detailed
+n3: 893689 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 540688 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 540688 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 540688 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 540688 0x118D72: {{closure}} (rt.rs:49)
+     n1: 540688 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 540688 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 540688 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 540688 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 540688 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 540688 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 351564 0x12CF04: alloc (alloc.rs:84)
+  n1: 351564 0x12CF04: alloc (alloc.rs:172)
+   n1: 351564 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 351564 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 351564 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 351564 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 351564 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 351564 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 351564 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 351564 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 351564 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 351564 0x118D72: {{closure}} (rt.rs:49)
+             n1: 351564 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 351564 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 351564 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 351564 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 351564 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 351564 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 1437 in 22 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=37
+#-----------
+time=28183829
+mem_heap_B=859533
+mem_heap_extra_B=89331
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=29119924
+mem_heap_B=825302
+mem_heap_extra_B=79674
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=29588005
+mem_heap_B=808094
+mem_heap_extra_B=74962
+mem_stacks_B=0
+heap_tree=detailed
+n3: 808094 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 540688 0x10D971: hashbrown::raw::RawTable<T>::reserve_rehash (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+  n1: 540688 0x10F32E: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+   n1: 540688 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+    n1: 540688 0x118D72: {{closure}} (rt.rs:49)
+     n1: 540688 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+      n1: 540688 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+       n1: 540688 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+        n1: 540688 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+         n1: 540688 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+          n0: 540688 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n1: 265969 0x12CF04: alloc (alloc.rs:84)
+  n1: 265969 0x12CF04: alloc (alloc.rs:172)
+   n1: 265969 0x12CF04: allocate_in<u8,alloc::alloc::Global> (raw_vec.rs:98)
+    n1: 265969 0x12CF04: with_capacity<u8> (raw_vec.rs:167)
+     n1: 265969 0x12CF04: with_capacity<u8> (vec.rs:357)
+      n1: 265969 0x12CF04: to_vec<u8> (slice.rs:158)
+       n1: 265969 0x12CF04: to_vec<u8> (slice.rs:379)
+        n1: 265969 0x12CF04: clone<u8> (vec.rs:1761)
+         n1: 265969 0x12CF04: <alloc::string::String as core::clone::Clone>::clone (string.rs:1694)
+          n1: 265969 0x10EFEC: waifu_image_tagger::main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+           n1: 265969 0x10FCB2: std::rt::lang_start::{{closure}} (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+            n1: 265969 0x118D72: {{closure}} (rt.rs:49)
+             n1: 265969 0x118D72: std::panicking::try::do_call (panicking.rs:292)
+              n1: 265969 0x11AC89: __rust_maybe_catch_panic (lib.rs:80)
+               n1: 265969 0x1197EC: try<i32,closure-0> (panicking.rs:271)
+                n1: 265969 0x1197EC: catch_unwind<closure-0,i32> (panic.rs:394)
+                 n1: 265969 0x1197EC: std::rt::lang_start_internal (rt.rs:48)
+                  n0: 265969 0x10F9D1: main (in /mnt/d/waifu_image_tagger/target/release/waifu_image_tagger)
+ n0: 1437 in 22 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=40
+#-----------
+time=30289980
+mem_heap_B=782289
+mem_heap_extra_B=67807
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=30991797
+mem_heap_B=756482
+mem_heap_extra_B=60526
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=31693952
+mem_heap_B=730730
+mem_heap_extra_B=53382
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=43
+#-----------
+time=32630041
+mem_heap_B=696555
+mem_heap_extra_B=43717
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=33565940
+mem_heap_B=662500
+mem_heap_extra_B=33996
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=34033960
+mem_heap_B=645355
+mem_heap_extra_B=29157
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=34502145
+mem_heap_B=627916
+mem_heap_extra_B=24420
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=35438233
+mem_heap_B=593625
+mem_heap_extra_B=14775
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=35906405
+mem_heap_B=576204
+mem_heap_extra_B=9956
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=36842471
+mem_heap_B=542125
+mem_heap_extra_B=163
+mem_stacks_B=0
+heap_tree=empty
