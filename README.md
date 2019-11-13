@@ -8,13 +8,14 @@ gexiv2: see https://github.com/felixc/rexiv2/blob/master/SETUP.md
 
 ## Usage
 
-Read config.json by default, if doesn't, use the current folder as album path:
-
 ```
 waifu_image_tagger
 ```
 
-You can use your custom config.json
+Read `config.json` by default.  
+If the config doesn't exist, the current folder will be regarded as album path.
+
+You can also use your custom config.json:
 
 ```
 waifu_image_tagger -c your_config.json
