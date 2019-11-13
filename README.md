@@ -27,7 +27,7 @@ cargo build --release
 ```
 ## Config
 
-When the program is running, it will detect creation of new images and tag them at once. In addition, it will rescan the album and update the tags of old images if you have extra saucenao quota.
+When the program is running, it will detect creation of new images and tag them at once. In addition, it will rescan the album and update the tags of old images if you have spare saucenao quota.
 
 The status of tagging will be saved into a hashmap, and it will be synced to disk in a regular basis in case of unexpected poweroff. 
 
