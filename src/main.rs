@@ -140,6 +140,24 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
             }
             ErrType::InvalidRequest(_) => {
                 println!("Invalid Request for {}", abspath);
+                let mut table = table.lock().unwrap();
+                let rel_path_str = Path::new(abspath)
+                    .strip_prefix(album_path.clone())
+                    .unwrap_or(Path::new(""))
+                    .to_str()
+                    .unwrap_or_default();
+                match table.get_mut(rel_path_str) {
+                    Some(val) => {
+                        if *val != std::u8::MAX {
+                            *val += 1;
+                        } else {
+                            *val = 1;
+                        }
+                    }
+                    _ => {
+                        table.insert(rel_path_str.to_owned(), 0);
+                    }
+                };
                 false
             }
             ErrType::InvalidCode { code, message } => match code {
