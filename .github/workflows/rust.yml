@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build
-      run: sudo apt-get install libgexiv2-dev -y && cargo +stable build --verbose
+      run: sudo apt-get install libgexiv2-dev -y && rustup update && cargo +stable build --verbose
     - name: Run tests
       run: cargo test --verbose
