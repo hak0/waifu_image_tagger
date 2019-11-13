@@ -4,7 +4,7 @@ Another saucenao image tagger
 
 ## Dependencies
 
-gexiv2
+gexiv2: see https://github.com/felixc/rexiv2/blob/master/SETUP.md
 
 ## Usage
 
