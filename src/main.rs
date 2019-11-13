@@ -295,8 +295,8 @@ fn tag_all_images(table_lock: Arc<Mutex<HashMap<String, u8>>>, handle_lock: Arc<
                 {
                     let handle = handle_lock.lock().unwrap();
                     let current_short_limit = handle.get_current_short_limit();
-                    thread::sleep(time::Duration::from_secs(
-                        (30 / (current_short_limit + 1) + 1) as u64,
+                    thread::sleep(time::Duration::from_micros(
+                        (30*1000*1000 / (current_short_limit)) as u64,
                     )); // short request limit
                 }
             }
