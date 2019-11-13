@@ -34,7 +34,7 @@ The status of tagging will be saved into a hashmap, and it will be synced to dis
 `table_path`: the path to save the tag status of each image.  
 `album_path`: the path of your album.  
 `api_key`: saucenao api key. If you don't have one, just leave it empty. An upgraded saucenao account can tag more images a day.  
-`min_similarity`: similarity threshold for saucenao. When it's too low, you may get wrong tags, but if it's too high, then you may miss the correct results.  
-`preserve_quota_percent`: it will preserve some percent of quota so you can still use saucenao in browser.  
+`min_similarity`: similarity threshold for saucenao. When it's too low, you may get wrong tags, but if it's too high, then you may miss the correct results. The value is between 0 ~ 100.  
+`preserve_quota_percent`: it will preserve some percent of quota so you can still use saucenao in browser. The value is between 0 ~ 100. Set it to 0 to disable the feature.   
 `rescan_interval_minutes`: after each rescan of all images, it will sleep for a while. The duration is set here.  
-`cache_num`: the table will be written to disk after cache_num images are tagged.
+`cache_num`: the table will be written to disk after every cache_num images are tagged.
