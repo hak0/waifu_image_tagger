@@ -319,6 +319,7 @@ fn tag_all_images(table_lock: Arc<Mutex<HashMap<String, u8>>>, handle_lock: Arc<
                 }
             }
         }
+        save_table(table_lock.clone(), table_path).expect("unable to save table");
         thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
     }
 }
