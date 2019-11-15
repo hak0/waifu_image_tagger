@@ -4,7 +4,7 @@ Another saucenao image tagger
 
 It watches your album folder (recursively), find images(jpg, png) and get tags from gelbooru, finally write them into the IPTC-IIM keywords of each image.
 
-Then you can use software like Adobe Lightroom or XMView to search images with tags. It will be quite useful when you are drowning in thousands of waifu images.
+Then you can use software like Adobe Lightroom or XnView to search images with tags. It will be quite useful when you are drowning in thousands of waifu images.
 
 ## Dependencies
 
