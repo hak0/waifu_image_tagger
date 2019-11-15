@@ -187,39 +187,38 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
             }
         },
         Ok(result) => {
-            let online_tags = if result.is_empty() {
-                BTreeSet::<String>::new()
-            } else {
-                let gelbooru_id = result
-                    .first()
-                    .unwrap()
-                    .additional_fields
-                    .as_ref()
-                    .ok_or("Failed to get additional fields of response")
-                    .unwrap()["gelbooru_id"]
-                    .as_u64()
-                    .ok_or("failed to convert gelbooru_id into u64")
-                    .unwrap();
-                let json_url = format!(
-                    "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
-                    gelbooru_id
-                );
-                match reqwest::get(&json_url)
-                    .expect("failed to get response from gelbooru")
-                    .text()
-                {
-                    Ok(json) => {
-                        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
-                        v[0]["tags"]
-                            .to_string()
-                            .replace("\"", "")
-                            .split(" ")
-                            .map(|s| s.to_owned())
-                            .collect::<BTreeSet<String>>()
-                    }
-                    Err(_) => {
-                        println!("Failed to get json from gelbooru");
-                        BTreeSet::<String>::new()
+            let online_tags = match result.first() {
+                None => BTreeSet::<String>::new(),
+                Some(result_first) => {
+                    let gelbooru_id = result_first
+                        .additional_fields
+                        .as_ref()
+                        .ok_or("Failed to get additional fields of response")
+                        .unwrap()["gelbooru_id"]
+                        .as_u64()
+                        .ok_or("failed to convert gelbooru_id into u64")
+                        .unwrap();
+                    let json_url = format!(
+                        "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
+                        gelbooru_id
+                    );
+                    match reqwest::get(&json_url)
+                        .expect("failed to get response from gelbooru")
+                        .text()
+                    {
+                        Ok(json) => {
+                            let v: serde_json::Value = serde_json::from_str(&json).expect("failed to deserialize json");
+                            v[0]["tags"]
+                                .to_string()
+                                .replace("\"", "")
+                                .split(" ")
+                                .map(|s| s.to_owned())
+                                .collect::<BTreeSet<String>>()
+                        }
+                        Err(_) => {
+                            println!("Failed to get json from gelbooru");
+                            BTreeSet::<String>::new()
+                        }
                     }
                 }
             };
@@ -230,7 +229,7 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
                     .into_iter()
                     .map(|x| &**x)
                     .collect::<Vec<&str>>();
-                let metadata = Metadata::new_from_path(abspath).unwrap();
+                let metadata = Metadata::new_from_path(abspath).expect(&format!("failed to get metadata from image {}", abspath));
                 metadata
                     .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
                     .expect("Unable to get tags");
@@ -245,7 +244,6 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
                 .unwrap_or(Path::new(""))
                 .to_str()
                 .unwrap_or_default();
-            // println!("{:?}", (*p_table).entry(rel_path_str.to_string()).or_insert(0));
             match table.get_mut(rel_path_str) {
                 Some(val) => {
                     if *val != std::u8::MAX {
