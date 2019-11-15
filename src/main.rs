@@ -4,9 +4,9 @@ extern crate reqwest;
 extern crate rexiv2;
 extern crate rustnao;
 extern crate serde_json;
+use clap::App;
 use rexiv2::Metadata;
 use rustnao::{Handler, HandlerBuilder};
-use clap::{App};
 use std::collections::{BTreeSet, HashMap};
 use std::error::Error;
 use std::fs::{self, File};
@@ -17,7 +17,11 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
 
-fn watch_folder(album_path: &str, table: Arc<Mutex<HashMap<String, u8>>>, handle: Arc<Mutex<Handler>>) -> notify::Result<()> {
+fn watch_folder(
+    album_path: &str,
+    table: Arc<Mutex<HashMap<String, u8>>>,
+    handle: Arc<Mutex<Handler>>,
+) -> notify::Result<()> {
     use crossbeam_channel::unbounded;
     use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
     use std::time::Duration;
@@ -31,8 +35,7 @@ fn watch_folder(album_path: &str, table: Arc<Mutex<HashMap<String, u8>>>, handle
                 let event_unwrap = event?;
                 match (&event_unwrap.kind, &event_unwrap.flag()) {
                     (EventKind::Create(_), None) => {
-                        scan_folder(album_path, table.clone())
-                            .expect("Unable to scan the folder!");
+                        scan_folder(album_path, table.clone()).expect("Unable to scan the folder!");
                         let table_cloned = table.clone();
                         let paths = event_unwrap.paths.to_owned();
                         println!("File Added: {:?}, Table Updated", &paths);
@@ -40,7 +43,12 @@ fn watch_folder(album_path: &str, table: Arc<Mutex<HashMap<String, u8>>>, handle
                         let c_album_path = album_path.to_owned();
                         thread::spawn(move || {
                             for each in paths {
-                                tag_single_image(each.to_str().unwrap(), table_cloned.clone(), handle_cloned.clone(), c_album_path.clone());
+                                tag_single_image(
+                                    each.to_str().unwrap(),
+                                    table_cloned.clone(),
+                                    handle_cloned.clone(),
+                                    c_album_path.clone(),
+                                ).expect("Unable to tag single image");
                             }
                         });
                     }
@@ -121,7 +129,12 @@ fn scan_folder(
     Ok(())
 }
 
-fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handle: Arc<Mutex<Handler>>, album_path: String) {
+fn tag_single_image(
+    abspath: &str,
+    table: Arc<Mutex<HashMap<String, u8>>>,
+    handle: Arc<Mutex<Handler>>,
+    album_path: String,
+) -> Result<(), Box<dyn Error>> {
     use rustnao::ErrType;
 
     let handle = handle.lock().unwrap();
@@ -202,21 +215,18 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
                         "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
                         gelbooru_id
                     );
-                    match reqwest::get(&json_url)
+                    match serde_json::from_str::<serde_json::Value>(&reqwest::get(&json_url)
                         .expect("failed to get response from gelbooru")
-                        .text()
+                        .text()?)
                     {
-                        Ok(json) => {
-                            let v: serde_json::Value = serde_json::from_str(&json).expect("failed to deserialize json");
-                            v[0]["tags"]
-                                .to_string()
-                                .replace("\"", "")
-                                .split(" ")
-                                .map(|s| s.to_owned())
-                                .collect::<BTreeSet<String>>()
-                        }
+                        Ok(v) => v[0]["tags"]
+                            .to_string()
+                            .replace("\"", "")
+                            .split(" ")
+                            .map(|s| s.to_owned())
+                            .collect::<BTreeSet<String>>(),
                         Err(_) => {
-                            println!("Failed to get json from gelbooru");
+                            println!("failed to deserialize json");
                             BTreeSet::<String>::new()
                         }
                     }
@@ -229,7 +239,8 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
                     .into_iter()
                     .map(|x| &**x)
                     .collect::<Vec<&str>>();
-                let metadata = Metadata::new_from_path(abspath).expect(&format!("failed to get metadata from image {}", abspath));
+                let metadata = Metadata::new_from_path(abspath)
+                    .expect(&format!("failed to get metadata from image {}", abspath));
                 metadata
                     .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
                     .expect("Unable to get tags");
@@ -267,16 +278,38 @@ fn tag_single_image(abspath: &str, table: Arc<Mutex<HashMap<String, u8>>>, handl
     } {
         ();
     }
+    Ok(())
 }
 
-fn tag_all_images(table_lock: Arc<Mutex<HashMap<String, u8>>>, handle_lock: Arc<Mutex<Handler>>, table_path: &str, preserve_quota_percent: f64, rescan_interval_minutes: u64, cache_num: u64, album_path: String) {
+fn tag_all_images(
+    table_lock: Arc<Mutex<HashMap<String, u8>>>,
+    handle_lock: Arc<Mutex<Handler>>,
+    table_path: &str,
+    preserve_quota_percent: f64,
+    rescan_interval_minutes: u64,
+    cache_num: u64,
+    album_path: String,
+) {
     use std::convert::TryFrom;
     loop {
         // in order to get the correct limit, we have to tag an image at first.
         {
-            let rel_path = table_lock.lock().unwrap().iter().min_by_key(|x| x.1).unwrap().0.to_owned();
+            let rel_path = table_lock
+                .lock()
+                .unwrap()
+                .iter()
+                .min_by_key(|x| x.1)
+                .unwrap()
+                .0
+                .to_owned();
             let abspath = format!("{}{}", album_path, rel_path);
-            tag_single_image(&abspath, table_lock.clone(), handle_lock.clone(), album_path.clone());
+            tag_single_image(
+                &abspath,
+                table_lock.clone(),
+                handle_lock.clone(),
+                album_path.clone(),
+            )
+            .expect(&format!("Failed to tag single image {}", &abspath));
         };
         let long_limit = handle_lock.lock().unwrap().get_long_limit();
         let current_long_limit = handle_lock.lock().unwrap().get_current_long_limit();
@@ -302,7 +335,13 @@ fn tag_all_images(table_lock: Arc<Mutex<HashMap<String, u8>>>, handle_lock: Arc<
             let mut count: u64 = cache_num;
             for (relpath, _) in selected.iter() {
                 let abspath = format!("{}{}", album_path, relpath);
-                tag_single_image(&abspath, table_lock.clone(), handle_lock.clone(), album_path.clone());
+                tag_single_image(
+                    &abspath,
+                    table_lock.clone(),
+                    handle_lock.clone(),
+                    album_path.clone(),
+                )
+                .expect(&format!("Failed to tag image {}", abspath));
                 count = count - 1;
                 if count <= 0 {
                     save_table(table_lock.clone(), table_path).expect("unable to save table");
@@ -312,7 +351,7 @@ fn tag_all_images(table_lock: Arc<Mutex<HashMap<String, u8>>>, handle_lock: Arc<
                     let handle = handle_lock.lock().unwrap();
                     let current_short_limit = handle.get_current_short_limit();
                     thread::sleep(time::Duration::from_micros(
-                        (30*1000*1000 / (current_short_limit)) as u64,
+                        (30 * 1000 * 1000 / (current_short_limit)) as u64,
                     )); // short request limit
                 }
             }
@@ -356,9 +395,11 @@ fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, B
 
 fn main() -> Result<(), Box<dyn Error>> {
     // TODO: HANDLE error when folder isn't exist.
-    let config_path = match App::new("waifu image tagger").args_from_usage(
-        "-c, --config=[FILE] 'set a config file'"
-    ).get_matches().value_of("config") {
+    let config_path = match App::new("waifu image tagger")
+        .args_from_usage("-c, --config=[FILE] 'set a config file'")
+        .get_matches()
+        .value_of("config")
+    {
         Some(s) => s.to_owned(),
         None => String::from("config.json"),
     };
@@ -396,11 +437,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cache_num = config["cache_num"]
         .as_u64()
         .expect("cache_num must be an u64 integer!");
-    let handle_lock = Arc::new(Mutex::new(HandlerBuilder::default()
-        .api_key(api_key)
-        .min_similarity(min_similarity)
-        .db(Handler::GELBOORU)
-        .build()));
+    let handle_lock = Arc::new(Mutex::new(
+        HandlerBuilder::default()
+            .api_key(api_key)
+            .min_similarity(min_similarity)
+            .db(Handler::GELBOORU)
+            .build(),
+    ));
     read_table(table_lock.clone(), table_path).expect("Failed to read table!");
     scan_folder(album_path, table_lock.clone())?;
     if table_lock.lock().unwrap().is_empty() {
@@ -412,8 +455,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let c_album_path = album_path.to_owned();
     thread::spawn(move || -> () {
         // tagworker
-        tag_all_images(c_table_lock, c_handle_lock, &c_table_path, preserve_quota_percent, rescan_interval_minutes, cache_num, c_album_path);
+        tag_all_images(
+            c_table_lock,
+            c_handle_lock,
+            &c_table_path,
+            preserve_quota_percent,
+            rescan_interval_minutes,
+            cache_num,
+            c_album_path,
+        );
     });
-    watch_folder(album_path, table_lock.clone(), handle_lock.clone()).expect("Failed to watch folder!");
+    watch_folder(album_path, table_lock.clone(), handle_lock.clone())
+        .expect("Failed to watch folder!");
     Ok(())
 }
