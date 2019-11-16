@@ -23,11 +23,11 @@ fn watch_folder(
     handle: Arc<Mutex<Handler>>,
 ) -> notify::Result<()> {
     use crossbeam_channel::unbounded;
-    use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+    use notify::{EventKind, PollWatcher, RecursiveMode, Watcher};
     use std::time::Duration;
 
     let (tx, rx) = unbounded();
-    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(4))?;
+    let mut watcher: PollWatcher = Watcher::new(tx, Duration::from_secs(30))?;
     watcher.watch(album_path, RecursiveMode::Recursive)?;
     loop {
         match rx.recv() {
@@ -394,7 +394,6 @@ fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, B
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // TODO: HANDLE error when folder isn't exist.
     let config_path = match App::new("waifu image tagger")
         .args_from_usage("-c, --config=[FILE] 'set a config file'")
         .get_matches()
