@@ -23,11 +23,11 @@ fn watch_folder(
     handle: Arc<Mutex<Handler>>,
 ) -> notify::Result<()> {
     use crossbeam_channel::unbounded;
-    use notify::{EventKind, PollWatcher, RecursiveMode, Watcher};
+    use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
     use std::time::Duration;
 
     let (tx, rx) = unbounded();
-    let mut watcher: PollWatcher = Watcher::new(tx, Duration::from_secs(30))?;
+    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(4))?;
     watcher.watch(album_path, RecursiveMode::Recursive)?;
     loop {
         match rx.recv() {
