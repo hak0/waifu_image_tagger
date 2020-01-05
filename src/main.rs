@@ -115,7 +115,9 @@ fn scan_folder(
             for entry in fs::read_dir(dir)? {
                 let path = entry?.path();
                 if path.is_dir() {
-                    visit_dirs(&path, cb)?;
+                    if path.file_name() != Some(std::ffi::OsStr::new("@eaDir")) { // For synology systems
+                        visit_dirs(&path, cb)?;
+                    }
                 } else {
                     cb(&path);
                 }
@@ -174,13 +176,17 @@ fn tag_single_image(
                 false
             }
             ErrType::InvalidCode { code, message } => match code {
+                -5 => {
+                    println!("Image file size > 15MB, too large!");
+                    false
+                }
                 -4 => {
                     println!("Image not valid {}", abspath);
                     false
                 }
                 -2 => {
-                    println!("Limit Exceeded, Wait a minute.",);
-                    thread::sleep(time::Duration::from_secs(60));
+                    println!("Limit Exceeded, Wait 30 minutes.",);
+                    thread::sleep(time::Duration::from_secs(1800));
                     true
                 }
                 _ => {
@@ -464,7 +470,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             c_album_path,
         );
     });
-    watch_folder(album_path, table_lock.clone(), handle_lock.clone())
-        .expect("Failed to watch folder!");
+    //watch_folder(album_path, table_lock.clone(), handle_lock.clone())
+    //    .expect("Failed to watch folder!");
+    // not using watch_folder anymore
+    loop {
+        thread::sleep(time::Duration::from_secs(3600));
+    };
     Ok(())
 }
