@@ -474,6 +474,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //    .expect("Failed to watch folder!");
     // not using watch_folder anymore
     loop {
+        scan_folder(album_path, table_lock.clone())?;
         thread::sleep(time::Duration::from_secs(3600));
     };
     Ok(())
