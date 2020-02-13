@@ -6,7 +6,7 @@ extern crate serde_json;
 use clap::App;
 use rexiv2::Metadata;
 use rustnao::{Handler, HandlerBuilder};
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, BTreeMap};
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::{self, BufReader};
@@ -32,7 +32,7 @@ fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
 
 fn scan_folder(
     folder_path: &str,
-    table: Arc<Mutex<HashMap<String, u8>>>,
+    table: Arc<Mutex<BTreeMap<String, u8>>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut add_to_table = |abs_path_buf: &PathBuf| {
         // unwrap or default: in case of files with no extension(like.Xrresouces)
@@ -89,7 +89,7 @@ fn scan_folder(
 
 fn tag_single_image(
     abspath: &str,
-    table: Arc<Mutex<HashMap<String, u8>>>,
+    table: Arc<Mutex<BTreeMap<String, u8>>>,
     handle: Arc<Mutex<Handler>>,
     album_path: String,
 ) -> Result<(), Box<dyn Error>> {
@@ -244,7 +244,7 @@ fn tag_single_image(
 }
 
 fn tag_all_images(
-    table_lock: Arc<Mutex<HashMap<String, u8>>>,
+    table_lock: Arc<Mutex<BTreeMap<String, u8>>>,
     handle_lock: Arc<Mutex<Handler>>,
     table_path: &str,
     preserve_quota_percent: f64,
@@ -324,7 +324,7 @@ fn tag_all_images(
     }
 }
 
-fn save_table(table: Arc<Mutex<HashMap<String, u8>>>, path: &str) -> io::Result<()> {
+fn save_table(table: Arc<Mutex<BTreeMap<String, u8>>>, path: &str) -> io::Result<()> {
     let table_file = File::create(path)?;
     let p_table = table.lock().unwrap();
     serde_json::to_writer(table_file, &(*p_table))
@@ -338,11 +338,11 @@ fn save_table(table: Arc<Mutex<HashMap<String, u8>>>, path: &str) -> io::Result<
     Ok(())
 }
 
-fn read_table(table: Arc<Mutex<HashMap<String, u8>>>, path: &str) -> io::Result<()> {
+fn read_table(table: Arc<Mutex<BTreeMap<String, u8>>>, path: &str) -> io::Result<()> {
     match File::open(path) {
         Ok(table_file) => {
             let mut table = table.lock().unwrap();
-            let table2: HashMap<String, u8> = serde_json::from_reader(table_file)?;
+            let table2: BTreeMap<String, u8> = serde_json::from_reader(table_file)?;
             (*table).extend(table2);
             println!("Table loaded! Totally {} images!", table.len());
         }
@@ -377,7 +377,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "cache_num": 3
         }),
     };
-    let table_lock = Arc::new(Mutex::new(HashMap::<String, u8>::new()));
+    let table_lock = Arc::new(Mutex::new(BTreeMap::<String, u8>::new()));
     let album_path = config["album_path"]
         .as_str()
         .expect("album_path must be a string!");
