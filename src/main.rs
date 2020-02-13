@@ -1,5 +1,4 @@
 extern crate clap;
-extern crate notify;
 extern crate reqwest;
 extern crate rexiv2;
 extern crate rustnao;
@@ -16,49 +15,6 @@ use std::result::Result;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
-
-fn watch_folder(
-    album_path: &str,
-    table: Arc<Mutex<HashMap<String, u8>>>,
-    handle: Arc<Mutex<Handler>>,
-) -> notify::Result<()> {
-    use crossbeam_channel::unbounded;
-    use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
-    use std::time::Duration;
-
-    let (tx, rx) = unbounded();
-    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(4))?;
-    watcher.watch(album_path, RecursiveMode::Recursive)?;
-    loop {
-        match rx.recv() {
-            Ok(event) => {
-                let event_unwrap = event?;
-                match (&event_unwrap.kind, &event_unwrap.flag()) {
-                    (EventKind::Create(_), None) => {
-                        scan_folder(album_path, table.clone()).expect("Unable to scan the folder!");
-                        let table_cloned = table.clone();
-                        let paths = event_unwrap.paths.to_owned();
-                        println!("File Added: {:?}, Table Updated", &paths);
-                        let handle_cloned = handle.clone();
-                        let c_album_path = album_path.to_owned();
-                        thread::spawn(move || {
-                            for each in paths {
-                                tag_single_image(
-                                    each.to_str().unwrap(),
-                                    table_cloned.clone(),
-                                    handle_cloned.clone(),
-                                    c_album_path.clone(),
-                                ).expect("Unable to tag single image");
-                            }
-                        });
-                    }
-                    _ => (),
-                }
-            }
-            Err(err) => eprintln!("filesystem watch error: {:?}", err),
-        };
-    }
-}
 
 fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
     match Metadata::new_from_path(imgpath.to_owned()) {
@@ -364,6 +320,7 @@ fn tag_all_images(
         }
         save_table(table_lock.clone(), table_path).expect("unable to save table");
         thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
+        scan_folder(&album_path, table_lock.clone()).expect("uanble to rescan the folder");
     }
 }
 
@@ -443,7 +400,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .as_u64()
         .expect("cache_num must be an u64 integer!");
     let handle_lock = Arc::new(Mutex::new(
-        HandlerBuilder::default()
+        HandlerBuilder::new()
             .api_key(api_key)
             .min_similarity(min_similarity)
             .db(Handler::GELBOORU)
@@ -458,24 +415,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let c_handle_lock = handle_lock.clone();
     let c_table_path = table_path.to_owned();
     let c_album_path = album_path.to_owned();
-    thread::spawn(move || -> () {
-        // tagworker
-        tag_all_images(
-            c_table_lock,
-            c_handle_lock,
-            &c_table_path,
-            preserve_quota_percent,
-            rescan_interval_minutes,
-            cache_num,
-            c_album_path,
-        );
-    });
-    //watch_folder(album_path, table_lock.clone(), handle_lock.clone())
-    //    .expect("Failed to watch folder!");
-    // not using watch_folder anymore
-    loop {
-        scan_folder(album_path, table_lock.clone())?;
-        thread::sleep(time::Duration::from_secs(3600));
-    };
+    tag_all_images(
+        c_table_lock,
+        c_handle_lock,
+        &c_table_path,
+        preserve_quota_percent,
+        rescan_interval_minutes,
+        cache_num,
+        c_album_path,
+    );
     Ok(())
 }
