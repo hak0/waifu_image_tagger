@@ -16,10 +16,10 @@ gexiv2: see https://github.com/felixc/rexiv2/blob/master/SETUP.md
 cargo run --release
 ```
 
-Read `config.json` by default.  
+It will use `./config.json` as config file by default.  
 If the config doesn't exist, the current folder will be regarded as album path.
 
-You can also use your custom config.json:
+You can also use config.json in other locations:
 
 ```
 cargo build --release
