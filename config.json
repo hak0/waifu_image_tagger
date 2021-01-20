@@ -1,9 +1,0 @@
-{
-    "table_path": "/home/hako/waifu_image_tagger/test/table.json",
-    "album_path": "/home/hako/waifu_image_tagger/test/",
-    "api_key": "e5e16dc99303340aab9053665fc61634955bc837",
-    "min_similarity": 60.0,
-    "preserve_quota_percent": 25.0,
-    "rescan_interval_minutes": 360,
-    "cache_num": 3
-}
