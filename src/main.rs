@@ -177,8 +177,7 @@ fn tag_single_image(
                         "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
                         gelbooru_id
                     );
-                    match serde_json::from_str::<serde_json::Value>(&reqwest::blocking::get(&json_url)?
-                        .text()?)
+                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()
                     {
                         Ok(v) => v[0]["tags"]
                             .to_string()

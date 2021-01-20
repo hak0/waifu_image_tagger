@@ -12,5 +12,5 @@ rustnao = "*"
 serde = "*"
 serde_json = "*"
 crossbeam-channel = "*"
-reqwest = { version= "*", features = ["blocking"]}
+reqwest = { version= "*", features = ["blocking", "json"]}
 clap = "*"
