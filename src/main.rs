@@ -268,8 +268,8 @@ fn tag_all_images(
                 table_lock.clone(),
                 handle_lock.clone(),
                 album_path.clone(),
-            )
-            .expect(&format!("Failed to tag single image {}", &abspath));
+            ).ok()  // ignore error
+            // .expect(&format!("Failed to tag single image {}", &abspath));
         };
         let long_limit = handle_lock.lock().unwrap().get_long_limit();
         let current_long_limit = handle_lock.lock().unwrap().get_current_long_limit();
@@ -300,8 +300,8 @@ fn tag_all_images(
                     table_lock.clone(),
                     handle_lock.clone(),
                     album_path.clone(),
-                )
-                .expect(&format!("Failed to tag image {}", abspath));
+                ).ok(); // ignore error
+                //.expect(&format!("Failed to tag image {}", abspath));
                 count = count - 1;
                 if count <= 0 {
                     save_table(table_lock.clone(), table_path).expect("unable to save table");
