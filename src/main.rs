@@ -177,21 +177,22 @@ fn tag_single_image(
                         "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
                         gelbooru_id
                     );
-                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()
+                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"]
                     {
-                        Ok(v) => v[0]["tags"]
+                        serde_json::Value::Null => {
+                            println!("failed to deserialize json");
+                            BTreeSet::<String>::new()
+                        },
+                        v => v
                             .to_string()
                             .replace("\"", "")
                             .split(" ")
                             .map(|s| s.to_owned())
-                            .collect::<BTreeSet<String>>(),
-                        Err(_) => {
-                            println!("failed to deserialize json");
-                            BTreeSet::<String>::new()
-                        }
+                            .collect::<BTreeSet<String>>()
                     }
                 }
             };
+            println!("Online tags: {:?}", online_tags);
             let local_tags = get_local_tags(abspath);
             if !local_tags.is_superset(&online_tags) {
                 let new_tags = local_tags
