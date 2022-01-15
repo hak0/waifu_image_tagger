@@ -6,7 +6,7 @@ extern crate serde_json;
 use clap::App;
 use rexiv2::Metadata;
 use rustnao::{Handler, HandlerBuilder};
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::{self, BufReader};
@@ -71,7 +71,8 @@ fn scan_folder(
             for entry in fs::read_dir(dir)? {
                 let path = entry?.path();
                 if path.is_dir() {
-                    if path.file_name() != Some(std::ffi::OsStr::new("@eaDir")) { // For synology systems
+                    if path.file_name() != Some(std::ffi::OsStr::new("@eaDir")) {
+                        // For synology systems
                         visit_dirs(&path, cb)?;
                     }
                 } else {
@@ -80,7 +81,7 @@ fn scan_folder(
             }
         }
         Ok(())
-    };
+    }
 
     let path = Path::new(folder_path);
     visit_dirs(path, &mut add_to_table).expect("Failed to add images into hashmap");
@@ -177,18 +178,19 @@ fn tag_single_image(
                         "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
                         gelbooru_id
                     );
-                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"]
+                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"]
+                        [0]["tags"]
                     {
                         serde_json::Value::Null => {
                             println!("failed to deserialize json");
                             BTreeSet::<String>::new()
-                        },
+                        }
                         v => v
                             .to_string()
                             .replace("\"", "")
                             .split(" ")
                             .map(|s| s.to_owned())
-                            .collect::<BTreeSet<String>>()
+                            .collect::<BTreeSet<String>>(),
                     }
                 }
             };
@@ -269,8 +271,9 @@ fn tag_all_images(
                 table_lock.clone(),
                 handle_lock.clone(),
                 album_path.clone(),
-            ).ok()  // ignore error
-            // .expect(&format!("Failed to tag single image {}", &abspath));
+            )
+            .ok() // ignore error
+                  // .expect(&format!("Failed to tag single image {}", &abspath));
         };
         let long_limit = handle_lock.lock().unwrap().get_long_limit();
         let current_long_limit = handle_lock.lock().unwrap().get_current_long_limit();
@@ -301,8 +304,9 @@ fn tag_all_images(
                     table_lock.clone(),
                     handle_lock.clone(),
                     album_path.clone(),
-                ).ok(); // ignore error
-                //.expect(&format!("Failed to tag image {}", abspath));
+                )
+                .ok(); // ignore error
+                       //.expect(&format!("Failed to tag image {}", abspath));
                 count = count - 1;
                 if count <= 0 {
                     save_table(table_lock.clone(), table_path).expect("unable to save table");
