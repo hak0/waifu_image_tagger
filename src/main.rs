@@ -237,6 +237,7 @@ fn tag_all_images(
                         println!("Current quota: {}", long_quota);
                         // shrink vec size if long_quota is smaller than vec.len()
                         if vec.len() as i64 > long_quota {
+                            vec.drain(long_quota as usize ..vec.len());
                             vec.shrink_to(long_quota as usize);
                         }
                         running = true;
