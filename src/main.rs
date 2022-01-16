@@ -235,6 +235,10 @@ fn tag_all_images(
                         println!("Long Remaining: {}", long_remain);
                         println!("Long Limit: {}", long_limit);
                         println!("Current quota: {}", long_quota);
+                        // shrink vec size if long_quota is smaller than vec.len()
+                        if vec.len() as i64 > long_quota {
+                            vec.shrink_to(long_quota as usize);
+                        }
                         running = true;
                     }
                 }
@@ -249,6 +253,7 @@ fn tag_all_images(
             save_table(&table, table_path).expect("unable to save table");
         }
     }
+    save_table(&table, table_path).expect("unable to save table");
     // finished one complete scan. wait for next folder scan
     thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
     scan_folder(&album_path, table).expect("uanble to rescan the folder");
