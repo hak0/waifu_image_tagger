@@ -12,7 +12,6 @@ use std::fs::{self, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 use std::result::Result;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
 
@@ -32,7 +31,7 @@ fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
 
 fn scan_folder(
     folder_path: &str,
-    table: Arc<Mutex<BTreeMap<String, u8>>>,
+    table: &mut BTreeMap<String, u8>,
 ) -> Result<(), Box<dyn Error>> {
     let mut add_to_table = |abs_path_buf: &PathBuf| {
         // unwrap or default: in case of files with no extension(like.Xrresouces)
@@ -48,7 +47,6 @@ fn scan_folder(
                     .unwrap_or(Path::new(""))
                     .to_str()
                     .unwrap_or_default();
-                let mut table = table.lock().unwrap();
                 if !table.contains_key(rel_path_str) {
                     let abs_path = abs_path_buf
                         .to_str()
@@ -90,31 +88,28 @@ fn scan_folder(
 
 fn tag_single_image(
     abspath: &str,
-    table: Arc<Mutex<BTreeMap<String, u8>>>,
-    handle: Arc<Mutex<Handler>>,
-    album_path: String,
+    table: &mut BTreeMap<String, u8>,
+    handle: &Handler,
+    album_path: &str,
 ) -> Result<(), Box<dyn Error>> {
     use rustnao::ErrType;
 
-    let handle = handle.lock().unwrap();
     while match handle.get_sauce(abspath, None, None) {
         Err(err) => match err.kind() {
             ErrType::InvalidFile(_) => {
                 println!("File {} deleted or removed.", abspath);
-                let mut table = table.lock().unwrap();
                 let rel_path_str = Path::new(abspath)
-                    .strip_prefix(album_path.clone())
+                    .strip_prefix(album_path)
                     .unwrap_or(Path::new(""))
                     .to_str()
                     .unwrap_or_default();
-                (*table).remove(rel_path_str);
+                table.remove(rel_path_str);
                 false
             }
             ErrType::InvalidRequest(_) => {
                 println!("Invalid Request for {}", abspath);
-                let mut table = table.lock().unwrap();
                 let rel_path_str = Path::new(abspath)
-                    .strip_prefix(album_path.clone())
+                    .strip_prefix(album_path)
                     .unwrap_or(Path::new(""))
                     .to_str()
                     .unwrap_or_default();
@@ -194,7 +189,7 @@ fn tag_single_image(
                     }
                 }
             };
-            println!("Online tags: {:?}", online_tags);
+            // println!("Online tags: {:?}", online_tags);
             let local_tags = get_local_tags(abspath);
             if !local_tags.is_superset(&online_tags) {
                 let new_tags = local_tags
@@ -212,7 +207,6 @@ fn tag_single_image(
                     _ => (),
                 };
             }
-            let mut table = table.lock().unwrap();
             let rel_path_str = Path::new(abspath)
                 .strip_prefix(album_path.clone())
                 .unwrap_or(Path::new(""))
@@ -245,21 +239,19 @@ fn tag_single_image(
 }
 
 fn tag_all_images(
-    table_lock: Arc<Mutex<BTreeMap<String, u8>>>,
-    handle_lock: Arc<Mutex<Handler>>,
+    table: &mut BTreeMap<String, u8>,
+    handle: &Handler,
     table_path: &str,
     preserve_quota_percent: f64,
     rescan_interval_minutes: u64,
     cache_num: u64,
-    album_path: String,
+    album_path: &str,
 ) {
     use std::convert::TryFrom;
     loop {
         // in order to get the correct limit, we have to tag an image at first.
         {
-            let rel_path = table_lock
-                .lock()
-                .unwrap()
+            let rel_path = table
                 .iter()
                 .min_by_key(|x| x.1)
                 .unwrap()
@@ -268,32 +260,30 @@ fn tag_all_images(
             let abspath = format!("{}{}", album_path, rel_path);
             tag_single_image(
                 &abspath,
-                table_lock.clone(),
-                handle_lock.clone(),
-                album_path.clone(),
+                table,
+                handle,
+                album_path,
             )
             .ok() // ignore error
                   // .expect(&format!("Failed to tag single image {}", &abspath));
         };
-        let long_limit = handle_lock.lock().unwrap().get_long_limit();
-        let current_long_limit = handle_lock.lock().unwrap().get_current_long_limit();
+        let long_limit = handle.get_long_limit();
+        let current_long_limit = handle.get_current_long_limit();
         println!("Current Long Limit: {}", current_long_limit); //表示每日可用的总张数
         println!("Long Limit: {}", long_limit); //表示剩余可用的张数
         let available_quota = current_long_limit as i64
             - (long_limit as f64 * preserve_quota_percent / 100.0).ceil() as i64;
         if available_quota > 0 {
             let mut available_quota: usize = usize::try_from(available_quota).unwrap();
-            let table_len = table_lock.lock().unwrap().len();
+            let table_len = table.len();
             if available_quota > table_len {
                 available_quota = table_len;
             };
             println!("Going to tag {} images...", available_quota);
-            let ptable = table_lock.lock().unwrap();
-            let mut vec = (&ptable)
+            let mut vec = table
                 .iter()
                 .map(|(s, u)| (s.to_owned(), u.to_owned()))
                 .collect::<Vec<(String, u8)>>();
-            std::mem::drop(ptable);
             vec.sort_by(|a, b| a.1.partial_cmp(&(b.1)).unwrap());
             let selected = vec[0..available_quota].to_vec();
             let mut count: u64 = cache_num;
@@ -301,19 +291,18 @@ fn tag_all_images(
                 let abspath = format!("{}{}", album_path, relpath);
                 tag_single_image(
                     &abspath,
-                    table_lock.clone(),
-                    handle_lock.clone(),
+                    table,
+                    handle,
                     album_path.clone(),
                 )
                 .ok(); // ignore error
                        //.expect(&format!("Failed to tag image {}", abspath));
                 count = count - 1;
                 if count <= 0 {
-                    save_table(table_lock.clone(), table_path).expect("unable to save table");
+                    save_table(&table, table_path).expect("unable to save table");
                     count = cache_num;
                 };
                 {
-                    let handle = handle_lock.lock().unwrap();
                     let current_short_limit = handle.get_current_short_limit();
                     thread::sleep(time::Duration::from_micros(
                         (30 * 1000 * 1000 / (current_short_limit)) as u64,
@@ -321,32 +310,30 @@ fn tag_all_images(
                 }
             }
         }
-        save_table(table_lock.clone(), table_path).expect("unable to save table");
+        save_table(&table, table_path).expect("unable to save table");
         thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
-        scan_folder(&album_path, table_lock.clone()).expect("uanble to rescan the folder");
+        scan_folder(&album_path, table).expect("uanble to rescan the folder");
     }
 }
 
-fn save_table(table: Arc<Mutex<BTreeMap<String, u8>>>, path: &str) -> io::Result<()> {
+fn save_table(table: &BTreeMap<String, u8>, path: &str) -> io::Result<()> {
     let table_file = File::create(path)?;
-    let p_table = table.lock().unwrap();
-    serde_json::to_writer(table_file, &(*p_table))
+    serde_json::to_writer(table_file, &table)
         .expect("Failed to serialize table before saving!");
-    let covered = (*p_table).iter().filter(|(_, &x)| x != 0).count();
+    let covered = table.iter().filter(|(_, &x)| x != 0).count();
     println!(
         "Table Saved!  Images covered: {} / {} ",
         covered,
-        (*p_table).len()
+        table.len()
     );
     Ok(())
 }
 
-fn read_table(table: Arc<Mutex<BTreeMap<String, u8>>>, path: &str) -> io::Result<()> {
+fn read_table(table: &mut BTreeMap<String, u8>, path: &str) -> io::Result<()> {
     match File::open(path) {
         Ok(table_file) => {
-            let mut table = table.lock().unwrap();
             let table2: BTreeMap<String, u8> = serde_json::from_reader(table_file)?;
-            (*table).extend(table2);
+            table.extend(table2);
             println!("Table loaded! Totally {} images!", table.len());
         }
         Err(_) => println!("No existing table, create a new table"),
@@ -360,6 +347,7 @@ fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, B
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // parsing config
     let config_path = match App::new("waifu image tagger")
         .args_from_usage("-c, --config=[FILE] 'set a config file'")
         .get_matches()
@@ -380,7 +368,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "cache_num": 3
         }),
     };
-    let table_lock = Arc::new(Mutex::new(BTreeMap::<String, u8>::new()));
+    let mut table= BTreeMap::<String, u8>::new();
     let album_path = config["album_path"]
         .as_str()
         .expect("album_path must be a string!");
@@ -402,30 +390,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cache_num = config["cache_num"]
         .as_u64()
         .expect("cache_num must be an u64 integer!");
-    let handle_lock = Arc::new(Mutex::new(
-        HandlerBuilder::new()
+    let saucenao_handle = HandlerBuilder::new()
             .api_key(api_key)
             .min_similarity(min_similarity)
             .db(Handler::GELBOORU)
-            .build(),
-    ));
-    read_table(table_lock.clone(), table_path).expect("Failed to read table!");
-    scan_folder(album_path, table_lock.clone())?;
-    if table_lock.lock().unwrap().is_empty() {
-        save_table(table_lock.clone(), table_path).expect("Unable to save the table");
-    }
-    let c_table_lock = table_lock.clone();
-    let c_handle_lock = handle_lock.clone();
-    let c_table_path = table_path.to_owned();
-    let c_album_path = album_path.to_owned();
+            .build();
+
+    read_table(&mut table, table_path).expect("Failed to read table!");
+    scan_folder(album_path, &mut table)?;
+    save_table(&table, table_path).expect("Unable to save the table");
     tag_all_images(
-        c_table_lock,
-        c_handle_lock,
-        &c_table_path,
+        &mut table,
+        &saucenao_handle,
+        &table_path,
         preserve_quota_percent,
         rescan_interval_minutes,
         cache_num,
-        c_album_path,
+        &album_path,
     );
     Ok(())
 }

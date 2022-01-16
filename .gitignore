@@ -10,3 +10,4 @@ Cargo.lock
 **/*.rs.bk
 config.json
 Cargo.lock
+.DS_Store
