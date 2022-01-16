@@ -1,11 +1,10 @@
 extern crate clap;
 extern crate reqwest;
 extern crate rexiv2;
-extern crate rustnao;
 extern crate serde_json;
-use clap::App;
+use clap::{arg, App};
+use reqwest::blocking::Client;
 use rexiv2::Metadata;
-use rustnao::{Handler, HandlerBuilder};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::{self, File};
@@ -29,10 +28,7 @@ fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
     }
 }
 
-fn scan_folder(
-    folder_path: &str,
-    table: &mut BTreeMap<String, u8>,
-) -> Result<(), Box<dyn Error>> {
+fn scan_folder(folder_path: &str, table: &mut BTreeMap<String, u8>) -> Result<(), Box<dyn Error>> {
     let mut add_to_table = |abs_path_buf: &PathBuf| {
         // unwrap or default: in case of files with no extension(like.Xrresouces)
         let extension = abs_path_buf
@@ -89,237 +85,178 @@ fn scan_folder(
 fn tag_single_image(
     abspath: &str,
     table: &mut BTreeMap<String, u8>,
-    handle: &Handler,
+    url: &str,
+    min_similarity: f64,
     album_path: &str,
-) -> Result<(), Box<dyn Error>> {
-    use rustnao::ErrType;
-
-    while match handle.get_sauce(abspath, None, None) {
-        Err(err) => match err.kind() {
-            ErrType::InvalidFile(_) => {
-                println!("File {} deleted or removed.", abspath);
-                let rel_path_str = Path::new(abspath)
-                    .strip_prefix(album_path)
-                    .unwrap_or(Path::new(""))
-                    .to_str()
-                    .unwrap_or_default();
-                table.remove(rel_path_str);
-                false
+) -> Result<(i64, i64), Box<dyn Error>> {
+    let rel_path_str = Path::new(abspath)
+        .strip_prefix(album_path)
+        .unwrap_or(Path::new(""))
+        .to_str()
+        .unwrap_or_default();
+    // check whether the path exists, if not, remove it from table
+    if !Path::new(abspath).exists() {
+        println!("File {} deleted or removed.", abspath);
+        table.remove(rel_path_str);
+        return Ok((0, 0));
+    } else {
+        // update table, increase current entry by 1
+        match table.get_mut(rel_path_str) {
+            Some(val) => {
+                *val = if *val != std::u8::MAX { *val + 1 } else { 1 };
             }
-            ErrType::InvalidRequest(_) => {
-                println!("Invalid Request for {}", abspath);
-                let rel_path_str = Path::new(abspath)
-                    .strip_prefix(album_path)
-                    .unwrap_or(Path::new(""))
-                    .to_str()
-                    .unwrap_or_default();
-                match table.get_mut(rel_path_str) {
-                    Some(val) => {
-                        if *val != std::u8::MAX {
-                            *val += 1;
-                        } else {
-                            *val = 1;
-                        }
-                    }
-                    _ => {
-                        table.insert(rel_path_str.to_owned(), 0);
-                    }
-                };
-                false
-            }
-            ErrType::InvalidCode { code, message } => match code {
-                -5 => {
-                    println!("Image file size > 15MB, too large!");
-                    false
-                }
-                -4 => {
-                    println!("Image not valid {}", abspath);
-                    false
-                }
-                -2 => {
-                    println!("Limit Exceeded, Wait 30 minutes.",);
-                    thread::sleep(time::Duration::from_secs(1800));
-                    true
-                }
-                _ => {
-                    println!("Err: {}", message);
-                    println!("ErrKind: {:?}", err.kind());
-                    println!("ErrCode: {}", code);
-                    println!("Filepath: {}", abspath);
-                    true
-                }
-            },
             _ => {
-                println!("Err: {:?}", err);
-                println!("ErrKind: {:?}", err.kind());
-                println!("Filepath: {}", abspath);
-                thread::sleep(time::Duration::from_secs(30));
-                true
+                table.insert(rel_path_str.to_owned(), 0);
             }
-        },
-        Ok(result) => {
-            let online_tags = match result.first() {
-                None => BTreeSet::<String>::new(),
-                Some(result_first) => {
-                    let gelbooru_id = result_first
-                        .additional_fields
-                        .as_ref()
-                        .ok_or("Failed to get additional fields of response")
-                        .unwrap()["gelbooru_id"]
-                        .as_u64()
-                        .ok_or("failed to convert gelbooru_id into u64")
-                        .unwrap();
-                    let json_url = format!(
-                        "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
-                        gelbooru_id
-                    );
-                    match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"]
-                        [0]["tags"]
-                    {
-                        serde_json::Value::Null => {
-                            println!("failed to deserialize json");
-                            BTreeSet::<String>::new()
-                        }
-                        v => v
-                            .to_string()
-                            .replace("\"", "")
-                            .split(" ")
-                            .map(|s| s.to_owned())
-                            .collect::<BTreeSet<String>>(),
-                    }
-                }
-            };
-            // println!("Online tags: {:?}", online_tags);
-            let local_tags = get_local_tags(abspath);
-            if !local_tags.is_superset(&online_tags) {
-                let new_tags = local_tags
-                    .union(&online_tags)
-                    .into_iter()
-                    .map(|x| &**x)
-                    .collect::<Vec<&str>>();
-                let metadata = Metadata::new_from_path(abspath)
-                    .expect(&format!("failed to get metadata from image {}", abspath));
-                metadata
-                    .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
-                    .expect("Unable to get tags");
-                match metadata.save_to_file(abspath) {
-                    Err(_) => println!("Failed to save tags for {}", abspath),
-                    _ => (),
-                };
-            }
-            let rel_path_str = Path::new(abspath)
-                .strip_prefix(album_path.clone())
-                .unwrap_or(Path::new(""))
-                .to_str()
-                .unwrap_or_default();
-            match table.get_mut(rel_path_str) {
-                Some(val) => {
-                    if *val != std::u8::MAX {
-                        *val += 1;
-                    } else {
-                        *val = 1;
-                    }
-                }
-                _ => {
-                    table.insert(rel_path_str.to_owned(), 0);
-                }
-            }
-            println!(
-                "[Short limit: {}/{}]  Updated {}",
-                handle.get_current_short_limit(),
-                handle.get_short_limit(),
-                rel_path_str
-            );
-            false
         }
-    } {
-        ();
     }
-    Ok(())
+    // get online tags from saucenao and gelbooru
+    let form = reqwest::blocking::multipart::Form::new().file("file", abspath)?;
+    let client = Client::new();
+    let resp = client.post(url).multipart(form).send()?;
+    // validate the response
+    if resp.status().is_server_error() {
+        println!("server error!");
+        return Ok((0, 0));
+    } else if !resp.status().is_success() {
+        println!("Something else happened. Status: {:?}", resp.status());
+        return Ok((0, 0));
+    }
+    // parsing result from saucenao
+    let resp_json = resp.json::<serde_json::Value>()?;
+    let short_limit: i64 = resp_json["header"]["short_limit"]
+        .as_str()
+        .ok_or("parse_err")?
+        .parse()?;
+    let short_remain: i64 = resp_json["header"]["short_remaining"]
+        .as_i64()
+        .ok_or("parse_err")?;
+    let long_limit: i64 = resp_json["header"]["long_limit"]
+        .as_str()
+        .ok_or("parse_err")?
+        .parse()?;
+    let long_remain: i64 = resp_json["header"]["long_remaining"]
+        .as_i64()
+        .ok_or("parse_err")?;
+    let similarity: f64 = resp_json["results"][0]["header"]["similarity"]
+        .as_str()
+        .ok_or("parse_err")?
+        .parse()
+        .unwrap_or_default();
+    // filter similarity
+    if similarity <= min_similarity {
+        println!("Similarity for {} is too low, ignore.", rel_path_str);
+        return Ok((long_remain, long_limit));
+    }
+    // parse gelbooru id
+    let gelbooru_id: i64 = resp_json["results"][0]["data"]["gelbooru_id"]
+        .as_i64()
+        .ok_or("parse_err")?;
+    // get tags from gelbooru
+    let json_url = format!(
+        "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
+        gelbooru_id
+    );
+    let online_tags =
+        match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"] {
+            serde_json::Value::Null => {
+                println!("failed to deserialize json");
+                BTreeSet::<String>::new()
+            }
+            v => v
+                .to_string()
+                .replace("\"", "")
+                .split(" ")
+                .map(|s| s.to_owned())
+                .collect::<BTreeSet<String>>(),
+        };
+    // union online tags into local tags
+    let local_tags = get_local_tags(abspath);
+    if !local_tags.is_superset(&online_tags) {
+        let new_tags = local_tags
+            .union(&online_tags)
+            .into_iter()
+            .map(|x| &**x)
+            .collect::<Vec<&str>>();
+        let metadata = Metadata::new_from_path(abspath)
+            .expect(&format!("failed to get metadata from image {}", abspath));
+        metadata
+            .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
+            .expect("Unable to get tags");
+        match metadata.save_to_file(abspath) {
+            Err(_) => println!("Failed to save tags for {}", abspath),
+            _ => (),
+        };
+    }
+    // output log
+    println!(
+        "[Short limit: {}/{}]  Updated {}",
+        short_remain, short_limit, rel_path_str
+    );
+    // sleep for regeneration of short limit
+    thread::sleep(time::Duration::from_micros(
+        (10 * 1000 * 1000 / short_remain) as u64,
+    ));
+    Ok((long_remain, long_limit))
 }
 
 fn tag_all_images(
     table: &mut BTreeMap<String, u8>,
-    handle: &Handler,
+    url: &str,
+    min_similarity: f64,
     table_path: &str,
     preserve_quota_percent: f64,
     rescan_interval_minutes: u64,
     cache_num: u64,
     album_path: &str,
 ) {
-    use std::convert::TryFrom;
-    loop {
+    let mut running = false;
+    let mut long_quota: i64 = std::cmp::min(1, table.len() as i64);
+    // sort the table
+    let mut vec = table
+        .iter()
+        .map(|(s, u)| (s.to_owned(), u.to_owned()))
+        .collect::<Vec<(String, u8)>>();
+    vec.sort_by(|a, b| a.1.partial_cmp(&(b.1)).unwrap());
+    // idx
+    let mut idx = 0;
+    while long_quota > 0 && vec.len() > idx {
         // in order to get the correct limit, we have to tag an image at first.
-        {
-            let rel_path = table
-                .iter()
-                .min_by_key(|x| x.1)
-                .unwrap()
-                .0
-                .to_owned();
-            let abspath = format!("{}{}", album_path, rel_path);
-            tag_single_image(
-                &abspath,
-                table,
-                handle,
-                album_path,
-            )
-            .ok() // ignore error
-                  // .expect(&format!("Failed to tag single image {}", &abspath));
-        };
-        let long_limit = handle.get_long_limit();
-        let current_long_limit = handle.get_current_long_limit();
-        println!("Current Long Limit: {}", current_long_limit); //表示每日可用的总张数
-        println!("Long Limit: {}", long_limit); //表示剩余可用的张数
-        let available_quota = current_long_limit as i64
-            - (long_limit as f64 * preserve_quota_percent / 100.0).ceil() as i64;
-        if available_quota > 0 {
-            let mut available_quota: usize = usize::try_from(available_quota).unwrap();
-            let table_len = table.len();
-            if available_quota > table_len {
-                available_quota = table_len;
-            };
-            println!("Going to tag {} images...", available_quota);
-            let mut vec = table
-                .iter()
-                .map(|(s, u)| (s.to_owned(), u.to_owned()))
-                .collect::<Vec<(String, u8)>>();
-            vec.sort_by(|a, b| a.1.partial_cmp(&(b.1)).unwrap());
-            let selected = vec[0..available_quota].to_vec();
-            let mut count: u64 = cache_num;
-            for (relpath, _) in selected.iter() {
-                let abspath = format!("{}{}", album_path, relpath);
-                tag_single_image(
-                    &abspath,
-                    table,
-                    handle,
-                    album_path.clone(),
-                )
-                .ok(); // ignore error
-                       //.expect(&format!("Failed to tag image {}", abspath));
-                count = count - 1;
-                if count <= 0 {
-                    save_table(&table, table_path).expect("unable to save table");
-                    count = cache_num;
-                };
-                {
-                    let current_short_limit = handle.get_current_short_limit();
-                    thread::sleep(time::Duration::from_micros(
-                        (30 * 1000 * 1000 / (current_short_limit)) as u64,
-                    )); // short request limit
+        let rel_path = &vec[idx].0;
+        let abspath = format!("{}{}", album_path, rel_path);
+        match tag_single_image(&abspath, table, url, min_similarity, album_path) {
+            Ok((long_remain, long_limit)) => {
+                if long_remain != 0 && long_limit != 0 {
+                    // update available_quota
+                    long_quota = long_remain as i64
+                        - (long_limit as f64 * preserve_quota_percent / 100.0).ceil() as i64;
+                    // if it is running for the first time, output some extra info.
+                    if !running {
+                        println!("Long Remaining: {}", long_remain);
+                        println!("Long Limit: {}", long_limit);
+                        println!("Current quota: {}", long_quota);
+                        running = true;
+                    }
                 }
             }
+            Err(err) => {
+                println!("Error: {:?}", err);
+            }
+        };
+        // write table into disk if idx % cache_num == 0
+        idx += 1;
+        if 0 == idx as u64 % cache_num {
+            save_table(&table, table_path).expect("unable to save table");
         }
-        save_table(&table, table_path).expect("unable to save table");
-        thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
-        scan_folder(&album_path, table).expect("uanble to rescan the folder");
     }
+    // finished one complete scan. wait for next folder scan
+    thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
+    scan_folder(&album_path, table).expect("uanble to rescan the folder");
 }
 
 fn save_table(table: &BTreeMap<String, u8>, path: &str) -> io::Result<()> {
     let table_file = File::create(path)?;
-    serde_json::to_writer(table_file, &table)
-        .expect("Failed to serialize table before saving!");
+    serde_json::to_writer(table_file, &table).expect("Failed to serialize table before saving!");
     let covered = table.iter().filter(|(_, &x)| x != 0).count();
     println!(
         "Table Saved!  Images covered: {} / {} ",
@@ -349,7 +286,7 @@ fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, B
 fn main() -> Result<(), Box<dyn Error>> {
     // parsing config
     let config_path = match App::new("waifu image tagger")
-        .args_from_usage("-c, --config=[FILE] 'set a config file'")
+        .args(&[arg!(-c --config <FILE> "set a config file").required(false)])
         .get_matches()
         .value_of("config")
     {
@@ -368,7 +305,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "cache_num": 3
         }),
     };
-    let mut table= BTreeMap::<String, u8>::new();
+    let mut table = BTreeMap::<String, u8>::new();
     let album_path = config["album_path"]
         .as_str()
         .expect("album_path must be a string!");
@@ -390,23 +327,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cache_num = config["cache_num"]
         .as_u64()
         .expect("cache_num must be an u64 integer!");
-    let saucenao_handle = HandlerBuilder::new()
-            .api_key(api_key)
-            .min_similarity(min_similarity)
-            .db(Handler::GELBOORU)
-            .build();
+    let url = format!(
+        "https://saucenao.com/search.php?output_type=2&dbmask=16777216&numres=1&api_key={}",
+        api_key
+    );
 
     read_table(&mut table, table_path).expect("Failed to read table!");
     scan_folder(album_path, &mut table)?;
     save_table(&table, table_path).expect("Unable to save the table");
-    tag_all_images(
-        &mut table,
-        &saucenao_handle,
-        &table_path,
-        preserve_quota_percent,
-        rescan_interval_minutes,
-        cache_num,
-        &album_path,
-    );
+    loop {
+        tag_all_images(
+            &mut table,
+            &url,
+            min_similarity,
+            &table_path,
+            preserve_quota_percent,
+            rescan_interval_minutes,
+            cache_num,
+            &album_path,
+        );
+    }
     Ok(())
 }
