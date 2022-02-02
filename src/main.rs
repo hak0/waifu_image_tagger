@@ -145,7 +145,7 @@ fn tag_single_image(
         .unwrap_or_default();
     // filter similarity
     if similarity <= min_similarity {
-        println!("Similarity for {} is too low, ignore.", rel_path_str);
+        println!("[Short limit: {}/{}]  Similarity for {} is too low, ignore.", short_remain, short_limit, rel_path_str);
         return Ok((long_remain, long_limit));
     }
     // parse gelbooru id
@@ -170,6 +170,8 @@ fn tag_single_image(
                 .map(|s| s.to_owned())
                 .collect::<BTreeSet<String>>(),
         };
+    // DEBUG: println
+    // println!("online tags: {:?}", online_tags);
     // union online tags into local tags
     let local_tags = get_local_tags(abspath);
     if !local_tags.is_superset(&online_tags) {
