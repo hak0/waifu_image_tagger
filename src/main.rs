@@ -196,8 +196,9 @@ fn tag_single_image(
         short_remain, short_limit, rel_path_str
     );
     // sleep for regeneration of short limit
-    thread::sleep(time::Duration::from_micros(
-        (10 * 1000 * 1000 / short_remain) as u64,
+    println!("Thread Sleep for short time limit: {:}s!", 10 / short_remain as u64);
+    thread::sleep(time::Duration::from_secs(
+        10 / std::cmp::max(1, short_remain) as u64
     ));
     Ok((long_remain, long_limit))
 }
@@ -221,14 +222,14 @@ fn tag_all_images(
         .collect::<Vec<(String, u8)>>();
     vec.sort_by(|a, b| a.1.partial_cmp(&(b.1)).unwrap());
     // idx
-    let mut idx = 0;
+    let idx = 0;
     while long_quota > 0 && vec.len() > idx {
         // in order to get the correct limit, we have to tag an image at first.
         let rel_path = &vec[idx].0;
         let abspath = format!("{}{}", album_path, rel_path);
         match tag_single_image(&abspath, table, url, min_similarity, album_path) {
             Ok((long_remain, long_limit)) => {
-                if long_remain != 0 && long_limit != 0 {
+                if long_remain > 0 && long_limit > 0 {
                     // update available_quota
                     long_quota = long_remain as i64
                         - (long_limit as f64 * preserve_quota_percent / 100.0).ceil() as i64;
@@ -251,7 +252,7 @@ fn tag_all_images(
             }
         };
         // write table into disk if idx % cache_num == 0
-        idx += 1;
+        let idx = idx + 1;
         if 0 == idx as u64 % cache_num {
             save_table(&table, table_path).expect("unable to save table");
         }
