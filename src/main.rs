@@ -214,7 +214,7 @@ fn tag_all_images(
     album_path: &str,
 ) {
     let mut running = false;
-    let mut long_quota: i64 = std::cmp::min(1, table.len() as i64);
+    let mut long_quota: i64 = table.len() as i64;
     // sort the table
     let mut vec = table
         .iter()
@@ -239,7 +239,7 @@ fn tag_all_images(
                         println!("Long Limit: {}", long_limit);
                         println!("Current quota: {}", long_quota);
                         // shrink vec size if long_quota is smaller than vec.len()
-                        if vec.len() as i64 > long_quota {
+                        if long_quota > 0 && vec.len() as i64 > long_quota {
                             vec.drain(long_quota as usize ..vec.len());
                             vec.shrink_to(long_quota as usize);
                         }
