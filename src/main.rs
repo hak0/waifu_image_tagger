@@ -196,7 +196,6 @@ fn tag_single_image(
         short_remain, short_limit, rel_path_str
     );
     // sleep for regeneration of short limit
-    println!("Thread Sleep for short time limit: {:}s!", 10 / short_remain as u64);
     thread::sleep(time::Duration::from_secs(
         10 / std::cmp::max(1, short_remain) as u64
     ));
