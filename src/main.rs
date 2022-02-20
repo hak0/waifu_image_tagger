@@ -222,7 +222,7 @@ fn tag_all_images(
         .collect::<Vec<(String, u8)>>();
     vec.sort_by(|a, b| a.1.partial_cmp(&(b.1)).unwrap());
     // idx
-    let idx = 0;
+    let mut idx = 0;
     while long_quota > 0 && vec.len() > idx {
         // in order to get the correct limit, we have to tag an image at first.
         let rel_path = &vec[idx].0;
@@ -252,7 +252,7 @@ fn tag_all_images(
             }
         };
         // write table into disk if idx % cache_num == 0
-        let idx = idx + 1;
+        idx += 1;
         if 0 == idx as u64 % cache_num {
             save_table(&table, table_path).expect("unable to save table");
         }
