@@ -245,6 +245,8 @@ fn tag_all_images(
                         }
                         running = true;
                     }
+                } else {
+                    long_quota = 0;
                 }
             }
             Err(err) => {
