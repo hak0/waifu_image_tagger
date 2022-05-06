@@ -99,17 +99,7 @@ fn tag_single_image(
         println!("File {} deleted or removed.", abspath);
         table.remove(rel_path_str);
         return Ok((0, 0));
-    } else {
-        // update table, increase current entry by 1
-        match table.get_mut(rel_path_str) {
-            Some(val) => {
-                *val = if *val != std::u8::MAX { *val + 1 } else { 1 };
-            }
-            _ => {
-                table.insert(rel_path_str.to_owned(), 0);
-            }
-        }
-    }
+    } 
     // get online tags from saucenao and gelbooru
     let form = reqwest::blocking::multipart::Form::new().file("file", abspath)?;
     let client = Client::new();
@@ -191,6 +181,16 @@ fn tag_single_image(
             _ => (),
         };
     }
+    // update table, increase current entry by 1
+    match table.get_mut(rel_path_str) {
+        Some(val) => {
+            *val = if *val != std::u8::MAX { *val + 1 } else { 1 };
+        }
+        _ => {
+            table.insert(rel_path_str.to_owned(), 0);
+        }
+    }
+
     // output log
     println!(
         "[Short limit: {}/{}]  Updated {}",
