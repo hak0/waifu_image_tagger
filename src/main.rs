@@ -120,9 +120,9 @@ fn tag_single_image(
         return Ok((0, 0));
     } else if !resp.status().is_success() {
         match resp.status() {
-            StatusCode::TOO_MANY_REQUESTS => 
-        }
-        println!("Something else happened. Status: {:?}", resp.status());
+            reqwest::StatusCode::TOO_MANY_REQUESTS => println!("No quota left. Waiting for next scan..."),
+            _ => println!("Something else happened. Status: {:?}", resp.status())
+        };
         return Ok((0, 0));
     }
     // parsing result from saucenao
