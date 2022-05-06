@@ -119,6 +119,9 @@ fn tag_single_image(
         println!("server error!");
         return Ok((0, 0));
     } else if !resp.status().is_success() {
+        match resp.status() {
+            StatusCode::TOO_MANY_REQUESTS => 
+        }
         println!("Something else happened. Status: {:?}", resp.status());
         return Ok((0, 0));
     }
@@ -170,8 +173,6 @@ fn tag_single_image(
                 .map(|s| s.to_owned())
                 .collect::<BTreeSet<String>>(),
         };
-    // DEBUG: println
-    // println!("online tags: {:?}", online_tags);
     // union online tags into local tags
     let local_tags = get_local_tags(abspath);
     if !local_tags.is_superset(&online_tags) {
@@ -247,6 +248,7 @@ fn tag_all_images(
                 }
             }
             Err(err) => {
+                long_quota = 0;
                 println!("Error: {:?}", err);
             }
         };
