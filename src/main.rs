@@ -139,46 +139,46 @@ fn tag_single_image(
     // filter similarity
     if similarity <= min_similarity {
         println!("[Short limit: {}/{}]  Similarity for {} is too low, ignore.", short_remain, short_limit, rel_path_str);
-        return Ok((long_remain, long_limit));
-    }
-    // parse gelbooru id
-    let gelbooru_id: i64 = resp_json["results"][0]["data"]["gelbooru_id"]
-        .as_i64()
-        .ok_or("parse_err")?;
-    // get tags from gelbooru
-    let json_url = format!(
-        "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
-        gelbooru_id
-    );
-    let online_tags =
-        match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"] {
-            serde_json::Value::Null => {
-                println!("failed to deserialize json");
-                BTreeSet::<String>::new()
-            }
-            v => v
-                .to_string()
-                .replace("\"", "")
-                .split(" ")
-                .map(|s| s.to_owned())
-                .collect::<BTreeSet<String>>(),
-        };
-    // union online tags into local tags
-    let local_tags = get_local_tags(abspath);
-    if !local_tags.is_superset(&online_tags) {
-        let new_tags = local_tags
-            .union(&online_tags)
-            .into_iter()
-            .map(|x| &**x)
-            .collect::<Vec<&str>>();
-        let metadata = Metadata::new_from_path(abspath)
-            .expect(&format!("failed to get metadata from image {}", abspath));
-        metadata
-            .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
-            .expect("Unable to get tags");
-        match metadata.save_to_file(abspath) {
-            Err(_) => println!("Failed to save tags for {}", abspath),
-            _ => (),
+    } else {
+        // parse gelbooru id
+        let gelbooru_id: i64 = resp_json["results"][0]["data"]["gelbooru_id"]
+            .as_i64()
+            .ok_or("parse_err")?;
+        // get tags from gelbooru
+        let json_url = format!(
+            "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
+            gelbooru_id
+        );
+        let online_tags =
+            match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"] {
+                serde_json::Value::Null => {
+                    println!("failed to deserialize json");
+                    BTreeSet::<String>::new()
+                }
+                v => v
+                    .to_string()
+                    .replace("\"", "")
+                    .split(" ")
+                    .map(|s| s.to_owned())
+                    .collect::<BTreeSet<String>>(),
+            };
+        // union online tags into local tags
+        let local_tags = get_local_tags(abspath);
+        if !local_tags.is_superset(&online_tags) {
+            let new_tags = local_tags
+                .union(&online_tags)
+                .into_iter()
+                .map(|x| &**x)
+                .collect::<Vec<&str>>();
+            let metadata = Metadata::new_from_path(abspath)
+                .expect(&format!("failed to get metadata from image {}", abspath));
+            metadata
+                .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
+                .expect("Unable to get tags");
+            match metadata.save_to_file(abspath) {
+                Err(_) => println!("Failed to save tags for {}", abspath),
+                _ => (),
+            };
         };
     }
     // update table, increase current entry by 1
@@ -191,7 +191,6 @@ fn tag_single_image(
             table.insert(rel_path_str.to_owned(), 0);
         }
     }
-
     // output log
     println!(
         "[Short limit: {}/{}]  Updated {}",
