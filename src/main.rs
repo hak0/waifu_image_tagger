@@ -35,8 +35,9 @@ fn scan_folder(folder_path: &str, table: &mut BTreeMap<String, u8>) -> Result<()
             .extension()
             .unwrap_or_default()
             .to_str()
-            .unwrap_or_default();
-        match extension {
+            .unwrap_or_default()
+            .to_lowercase();
+        match extension.as_ref() {
             "png" | "jpg" | "bmp" | "jpeg" | "tif" | "tiff" | "webp" => {
                 let rel_path_str = abs_path_buf
                     .strip_prefix(folder_path.clone())
