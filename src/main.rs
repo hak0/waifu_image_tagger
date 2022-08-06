@@ -102,6 +102,16 @@ fn tag_single_image(
         table.remove(rel_path_str);
         return Ok((0, 0));
     } 
+    // update table, increase current entry by 1
+    // set maximum to be 4, so if an image has been tagged for 4 times, it will reset to 1.
+    match table.get_mut(rel_path_str) {
+        Some(val) => {
+            *val = if *val < 4 { *val + 1 } else { 1 };
+        }
+        _ => {
+            table.insert(rel_path_str.to_owned(), 0);
+        }
+    }
     // get online tags from saucenao and gelbooru
     let form = reqwest::blocking::multipart::Form::new().file("file", abspath)?;
     let client = Client::new();
@@ -182,16 +192,6 @@ fn tag_single_image(
                 _ => (),
             };
         };
-    }
-    // update table, increase current entry by 1
-    // set maximum to be 4, so if an image has been tagged for 4 times, it will reset to 1.
-    match table.get_mut(rel_path_str) {
-        Some(val) => {
-            *val = if *val < 4 { *val + 1 } else { 1 };
-        }
-        _ => {
-            table.insert(rel_path_str.to_owned(), 0);
-        }
     }
     // output log
     println!(
