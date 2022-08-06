@@ -95,6 +95,7 @@ fn tag_single_image(
         .unwrap_or(Path::new(""))
         .to_str()
         .unwrap_or_default();
+    println!("Image: {}", rel_path_str);
     // check whether the path exists, if not, remove it from table
     if !Path::new(abspath).exists() {
         println!("File {} deleted or removed.", abspath);
