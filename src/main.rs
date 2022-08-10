@@ -15,10 +15,10 @@ use std::thread;
 use std::time;
 
 fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
-    match Metadata::new_from_path(imgpath.to_owned()) {
+    match Metadata::new_from_path(imgpath) {
         Ok(metadata) => metadata
-            .get_tag_multiple_strings("Iptc.Application2.Keywords")
-            .expect("failed to get Iptc tag")
+            .get_tag_multiple_strings("Xmp.dc.subject")
+            .expect("failed to get xmp tag")
             .into_iter()
             .collect::<BTreeSet<String>>(),
         Err(err) => {
@@ -185,7 +185,7 @@ fn tag_single_image(
             let metadata = Metadata::new_from_path(abspath)
                 .expect(&format!("failed to get metadata from image {}", abspath));
             metadata
-                .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
+                .set_tag_multiple_strings("Xmp.dc.subject", &new_tags)
                 .expect("Unable to get tags");
             match metadata.save_to_file(abspath) {
                 Err(_) => println!("Failed to save tags for {}", abspath),
