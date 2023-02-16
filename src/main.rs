@@ -2,7 +2,7 @@ extern crate clap;
 extern crate reqwest;
 extern crate rexiv2;
 extern crate serde_json;
-use clap::{arg, App};
+use clap::{arg, Command};
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
 use std::collections::{BTreeMap, BTreeSet};
@@ -269,8 +269,10 @@ fn tag_all_images(
 }
 
 fn save_table(table: &BTreeMap<String, u8>, path: &str) -> io::Result<()> {
-    let table_file = File::create(path)?;
+    let tmp_path = String::from(path) + "_tmp";
+    let table_file = File::create(&tmp_path)?;
     serde_json::to_writer(table_file, &table).expect("Failed to serialize table before saving!");
+    fs::rename(&tmp_path, &path)?;
     let covered = table.iter().filter(|(_, &x)| x != 0).count();
     println!(
         "Table Saved!  Images covered: {} / {} ",
@@ -299,7 +301,7 @@ fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, B
 
 fn main() -> Result<(), Box<dyn Error>> {
     // parsing config
-    let config_path = match App::new("waifu image tagger")
+    let config_path = match Command::new("waifu image tagger")
         .args(&[arg!(-c --config <FILE> "set a config file").required(false)])
         .get_matches()
         .value_of("config")
@@ -361,5 +363,4 @@ fn main() -> Result<(), Box<dyn Error>> {
             &album_path,
         );
     }
-    Ok(())
 }
