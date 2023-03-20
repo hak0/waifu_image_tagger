@@ -10,4 +10,5 @@ edition = "2021"
 rexiv2 = "*"
 serde_json = "*"
 reqwest = { version = "*", features = ["blocking", "json", "multipart"] }
-clap = "*"
+clap = { version = "*", features = ["derive"] }
+config = "*"

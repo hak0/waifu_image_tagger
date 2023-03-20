@@ -2,13 +2,14 @@ extern crate clap;
 extern crate reqwest;
 extern crate rexiv2;
 extern crate serde_json;
-use clap::{arg, Command};
+use clap::Parser;
+use config::Config;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::{self, BufReader};
+use std::io;
 use std::path::{Path, PathBuf};
 use std::result::Result;
 use std::thread;
@@ -294,63 +295,60 @@ fn read_table(table: &mut BTreeMap<String, u8>, path: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn read_config_from_file<P: AsRef<Path>>(path: P) -> Result<serde_json::Value, Box<dyn Error>> {
-    let config = serde_json::from_reader(BufReader::new(File::open(path)?))?;
-    Ok(config)
+#[derive(Parser)]
+#[command(name = "Waifu Image Parser")]
+/// Command line interface struct
+struct Cli {
+    /// Sets a custom config file
+    /// #[arg(short, long, value_name = "FILE")]
+    config : Option<String>
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     // parsing config
-    let config_path = match Command::new("waifu image tagger")
-        .args(&[arg!(-c --config <FILE> "set a config file").required(false)])
-        .get_matches()
-        .value_of("config")
+    let cli = Cli::parse();
+        // .arg(arg!(-c --config <FILE> "set a config file").required(false).value_parser(value_parser!(PathBuf))).get_matches();
+
+
+        // .args(&[arg!(-c --config <FILE> "set a config file").required(false)])
+    let config_path = match cli.config.as_deref()
     {
-        Some(s) => s.to_owned(),
-        None => String::from("config.json"),
+        Some(s) => s,
+        None => "config.json",
     };
-    let config = match read_config_from_file(config_path) {
-        Ok(config) => config,
-        Err(_) => serde_json::json!({
-            "table_path": "./table.json",
-            "album_path": "./",
-            "api_key": "",
-            "min_similarity": 55,
-            "preserve_quota_percent": 25,
-            "rescan_interval_minutes": 5,
-            "cache_num": 3
-        }),
-    };
+    let config = Config::builder()
+        .set_default("table_path", "./table.json")?
+        .set_default("album_path", "./")?
+        .set_default("api_key", "")?
+        .set_default("min_similarity", 55)?
+        .set_default("preserve_quota_percent", 25)?
+        .set_default("rescan_interval_minutes", 5)?
+        .set_default("cache_num", 3)?
+        .add_source(config::File::new(config_path, config::FileFormat::Json))
+        .build()?;
     let mut table = BTreeMap::<String, u8>::new();
-    let album_path = config["album_path"]
-        .as_str()
+    let album_path = config.get_string("album_path")
         .expect("album_path must be a string!");
-    let table_path = config["table_path"]
-        .as_str()
+    let table_path = config.get_string("table_path")
         .expect("table_path must be a string!");
-    let api_key = config["api_key"]
-        .as_str()
+    let api_key = config.get_string("api_key")
         .expect("api_key must be a string!");
-    let min_similarity = config["min_similarity"]
-        .as_f64()
+    let min_similarity = config.get_float("min_similarity")
         .expect("min_similarity must be a f64 float!");
-    let preserve_quota_percent = config["preserve_quota_percent"]
-        .as_f64()
+    let preserve_quota_percent = config.get_float("preserve_quota_percent")
         .expect("preserve_quota_percent must be a f64 float!");
-    let rescan_interval_minutes = config["rescan_interval_minutes"]
-        .as_u64()
+    let rescan_interval_minutes: u64 = config.get_int("rescan_interval_minutes")?.try_into()
         .expect("cache_num must be an u64 integer!");
-    let cache_num = config["cache_num"]
-        .as_u64()
+    let cache_num: u64 = config.get_int("cache_num")?.try_into()
         .expect("cache_num must be an u64 integer!");
     let url = format!(
         "https://saucenao.com/search.php?output_type=2&dbmask=16777216&numres=1&api_key={}",
         api_key
     );
 
-    read_table(&mut table, table_path).expect("Failed to read table!");
-    scan_folder(album_path, &mut table)?;
-    save_table(&table, table_path).expect("Unable to save the table");
+    read_table(&mut table,&table_path).expect("Failed to read table!");
+    scan_folder(&album_path, &mut table)?;
+    save_table(&table, &table_path).expect("Unable to save the table");
     loop {
         tag_all_images(
             &mut table,
