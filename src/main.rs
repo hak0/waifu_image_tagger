@@ -297,10 +297,10 @@ fn read_table(table: &mut BTreeMap<String, u8>, path: &str) -> io::Result<()> {
 
 #[derive(Parser)]
 #[command(name = "Waifu Image Parser")]
-/// Command line interface struct
+#[command(about = "Tag your waifu images with gelbooru data, powered by saucenao")]
 struct Cli {
     /// Sets a custom config file
-    /// #[arg(short, long, value_name = "FILE")]
+    #[arg(short, long, value_name = "FILE", default_value = "config.json")]
     config : Option<String>
 }
 
