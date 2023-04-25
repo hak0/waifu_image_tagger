@@ -6,7 +6,7 @@ use clap::Parser;
 use config::Config;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::{self, File};
 use std::io;
@@ -15,21 +15,21 @@ use std::result::Result;
 use std::thread;
 use std::time;
 
-fn get_local_tags(imgpath: &str) -> BTreeSet<String> {
+fn get_local_tags(imgpath: &str) -> HashSet<String> {
     match Metadata::new_from_path(imgpath) {
         Ok(metadata) => metadata
             .get_tag_multiple_strings("Xmp.dc.subject")
             .expect("failed to get xmp tag")
             .into_iter()
-            .collect::<BTreeSet<String>>(),
+            .collect::<HashSet<String>>(),
         Err(err) => {
             eprintln!("ERROR on {}, {}", imgpath, err);
-            BTreeSet::<String>::new()
+            HashSet::<String>::new()
         }
     }
 }
 
-fn scan_folder(folder_path: &str, table: &mut BTreeMap<String, u8>) -> Result<(), Box<dyn Error>> {
+fn scan_folder(folder_path: &str, table: &mut HashMap<String, u8>) -> Result<(), Box<dyn Error>> {
     let mut add_to_table = |abs_path_buf: &PathBuf| {
         // unwrap or default: in case of files with no extension(like.Xrresouces)
         let extension = abs_path_buf
@@ -86,7 +86,7 @@ fn scan_folder(folder_path: &str, table: &mut BTreeMap<String, u8>) -> Result<()
 
 fn tag_single_image(
     abspath: &str,
-    table: &mut BTreeMap<String, u8>,
+    table: &mut HashMap<String, u8>,
     url: &str,
     min_similarity: f64,
     album_path: &str,
@@ -166,14 +166,14 @@ fn tag_single_image(
             match &reqwest::blocking::get(&json_url)?.json::<serde_json::Value>()?["post"][0]["tags"] {
                 serde_json::Value::Null => {
                     println!("failed to deserialize json");
-                    BTreeSet::<String>::new()
+                    HashSet::<String>::new()
                 }
                 v => v
                     .to_string()
                     .replace("\"", "")
                     .split(" ")
                     .map(|s| s.to_owned())
-                    .collect::<BTreeSet<String>>(),
+                    .collect::<HashSet<String>>(),
             };
         // union online tags into local tags
         let local_tags = get_local_tags(abspath);
@@ -207,7 +207,7 @@ fn tag_single_image(
 }
 
 fn tag_all_images(
-    table: &mut BTreeMap<String, u8>,
+    table: &mut HashMap<String, u8>,
     url: &str,
     min_similarity: f64,
     table_path: &str,
@@ -269,7 +269,7 @@ fn tag_all_images(
     scan_folder(&album_path, table).expect("uanble to rescan the folder");
 }
 
-fn save_table(table: &BTreeMap<String, u8>, path: &str) -> io::Result<()> {
+fn save_table(table: &HashMap<String, u8>, path: &str) -> io::Result<()> {
     let tmp_path = String::from(path) + "_tmp";
     let table_file = File::create(&tmp_path)?;
     serde_json::to_writer(table_file, &table).expect("Failed to serialize table before saving!");
@@ -283,10 +283,10 @@ fn save_table(table: &BTreeMap<String, u8>, path: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn read_table(table: &mut BTreeMap<String, u8>, path: &str) -> io::Result<()> {
+fn read_table(table: &mut HashMap<String, u8>, path: &str) -> io::Result<()> {
     match File::open(path) {
         Ok(table_file) => {
-            let table2: BTreeMap<String, u8> = serde_json::from_reader(table_file)?;
+            let table2: HashMap<String, u8> = serde_json::from_reader(table_file)?;
             table.extend(table2);
             println!("Table loaded! Totally {} images!", table.len());
         }
@@ -326,7 +326,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .set_default("cache_num", 3)?
         .add_source(config::File::new(config_path, config::FileFormat::Json))
         .build()?;
-    let mut table = BTreeMap::<String, u8>::new();
+    let mut table = HashMap::<String, u8>::new();
     let album_path = config.get_string("album_path")
         .expect("album_path must be a string!");
     let table_path = config.get_string("table_path")
