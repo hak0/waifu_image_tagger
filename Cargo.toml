@@ -12,3 +12,4 @@ serde_json = "*"
 reqwest = { version = "*", features = ["blocking", "json", "multipart"] }
 clap = { version = "*", features = ["derive"] }
 config = "*"
+ignore = "*"
