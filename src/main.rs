@@ -11,10 +11,9 @@ use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::error::Error;
 use std::ffi::OsStr;
-use std::fmt::{Binary, Display, Formatter};
 use std::fs::{self, File};
 use std::io;
-use std::io::{ErrorKind};
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::result::Result;
 use std::thread;
@@ -35,16 +34,12 @@ impl Table {
         Table { hashtable, pq }
     }
 
-    pub fn push(mut self, filename: &str, cnt: u8) {
+    pub fn push(&mut self, filename: &str, cnt: u8) {
         self.hashtable.insert(filename.to_string(), cnt);
         self.pq.push((Reverse(cnt), filename.to_string()));
     }
 
-    pub fn peek(self) {
-        self.pq.peek();
-    }
-
-    pub fn pop(mut self) -> Option<(String, u8)> {
+    pub fn pop(&mut self) -> Option<(String, u8)> {
         let result = self.pq.pop();
         match result {
             Some((cnt, filename)) => {
@@ -57,45 +52,18 @@ impl Table {
         }
     }
 
-    pub fn is_empty(self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.pq.is_empty()
     }
 
-    pub fn len(self) -> usize {
+    pub fn len(&self) -> usize {
         self.pq.len()
     }
 
-    pub fn contains(self, filename: &str) -> bool {
+    pub fn contains(&self, filename: &str) -> bool {
         self.hashtable.contains_key(filename)
     }
 }
-
-
-#[derive(Debug)]
-enum CustomError {
-    InvalidInput,
-    FileNotFound,
-    IoError(IoError),
-}
-
-impl Display for CustomError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        match *self {
-            CustomError::InvalidInput => write!(f, "Invalid input"),
-            CustomError::FileNotFound => write!(f, "File not found"),
-            CustomError::IoError(ref e) => e.fmt(f),
-        }
-    }
-}
-
-impl Error for CustomError {}
-
-impl From<IoError> for CustomError {
-    fn from(error: IoError) -> Self {
-        CustomError::IoError(error)
-    }
-}
-
 
 fn get_local_tags(imgpath: &str) -> HashSet<String> {
     match Metadata::new_from_path(imgpath) {
@@ -133,14 +101,13 @@ fn scan_folder(folder_path: &str, table: &mut Table) -> Result<(), Box<dyn Error
                     table.push(rel_path_str, cnt);
                 };
             }
+            _ => ()
         };
         Ok(())
     };
 
     for result in Walk::new(folder_path) {
-        if let Ok(entry) = result {
-            add_to_table(entry.into_path());
-        }
+        add_to_table(result?.into_path())?;
     }
     Ok(())
 }
@@ -151,11 +118,11 @@ fn tag_single_image(
     min_similarity: f64,
     album_path: &str,
 ) -> Result<(i64, i64), io::Error> {
-    let file_not_exist_err = io::Error::new(ErrorKind::NotFound, "File deleted or removed");
-    let parse_err = io::Error::new(ErrorKind::InvalidData, "Failed to parse json");
-    let network_err_saucenao = io::Error::new(ErrorKind::NotConnected, "Failed to get online tag from saucenao");
-    let quota_exceed_err_saucenao = io::Error::new(ErrorKind::OutOfMemory, "Quota exceed for saucenao");
-    let network_err_gelbooru = io::Error::new(ErrorKind::NotConnected, "Failed to get online tag from gelbooru");
+    let file_not_exist_err = || { io::Error::new(ErrorKind::NotFound, "File deleted or removed") };
+    let parse_err = || { io::Error::new(ErrorKind::InvalidData, "Failed to parse json") };
+    let network_err_saucenao = || { io::Error::new(ErrorKind::NotConnected, "Failed to get online tag from saucenao") };
+    let quota_exceed_err_saucenao = || { io::Error::new(ErrorKind::OutOfMemory, "Quota exceed for saucenao") };
+    let network_err_gelbooru = || { io::Error::new(ErrorKind::NotConnected, "Failed to get online tag from gelbooru") };
     
     let rel_path_str = Path::new(abspath)
         .strip_prefix(album_path)
@@ -165,51 +132,51 @@ fn tag_single_image(
     println!("Image: {}", rel_path_str);
     // check whether the path exists, if not, return an error to remove it from table
     if !Path::new(abspath).exists() {
-        return Err(file_not_exist_err);
+        return Err(file_not_exist_err());
     }
 
     // send request to saucenao
     let form = reqwest::blocking::multipart::Form::new().file("file", abspath)?;
-    let resp = Client::new().post(url).multipart(form).send().or(Err(network_err_saucenao))?;
+    let resp = Client::new().post(url).multipart(form).send().or(Err(network_err_saucenao()))?;
     // validate the response
     if resp.status().is_server_error() {
         eprintln!("server error!");
-        return Err(network_err_saucenao);
+        return Err(network_err_saucenao());
     } else if !resp.status().is_success() {
         match resp.status() {
             reqwest::StatusCode::TOO_MANY_REQUESTS => {
                 println!("No quota left. Waiting for next scan...");
-                return Err(quota_exceed_err_saucenao);
+                return Err(quota_exceed_err_saucenao());
             }
             _ => println!("Something else happened. Status: {:?}", resp.status()),
         };
-        return Err(network_err_saucenao);
+        return Err(network_err_saucenao());
     }
 
     // parsing result from saucenao
 
-    let resp_json = resp.json::<serde_json::Value>().or(Err(parse_err))?;
+    let resp_json = resp.json::<serde_json::Value>().or(Err(parse_err()))?;
     let short_limit: i64 = resp_json["header"]["short_limit"]
         .as_str()
-        .ok_or(parse_err)?
+        .ok_or(parse_err())?
         .parse()
-        .or(Err(parse_err))?;
+        .or(Err(parse_err()))?;
     let short_remain: i64 = resp_json["header"]["short_remaining"]
         .as_i64()
-        .ok_or(parse_err)?;
+        .ok_or(parse_err())?;
     let long_limit: i64 = resp_json["header"]["long_limit"]
         .as_str()
-        .ok_or(parse_err)?
+        .ok_or(parse_err())?
         .parse()
-        .or(Err(parse_err))?;
+        .or(Err(parse_err()))?;
     let long_remain: i64 = resp_json["header"]["long_remaining"]
         .as_i64()
-        .ok_or(parse_err)?;
+        .ok_or(parse_err())?;
     let similarity: f64 = resp_json["results"][0]["header"]["similarity"]
         .as_str()
-        .ok_or(parse_err)?
+        .ok_or(parse_err())?
         .parse()
-        .or(Err(parse_err))?;
+        .or(Err(parse_err()))?;
     // filter similarity
     if similarity <= min_similarity {
         println!("[Short limit: {}/{}]  Similarity for {} is too low, ignore.", short_remain, short_limit, rel_path_str);
@@ -217,14 +184,14 @@ fn tag_single_image(
         // parse gelbooru id
         let gelbooru_id: i64 = resp_json["results"][0]["data"]["gelbooru_id"]
             .as_i64()
-            .ok_or(parse_err)?;
+            .ok_or(parse_err())?;
         // get tags from gelbooru
         let json_url = format!(
             "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
             gelbooru_id
         );
         let online_tags =
-            match &reqwest::blocking::get(&json_url).or(Err(network_err_gelbooru))?.json::<serde_json::Value>().or(Err(parse_err))?["post"][0]["tags"] {
+            match &reqwest::blocking::get(&json_url).or(Err(network_err_gelbooru()))?.json::<serde_json::Value>().or(Err(parse_err()))?["post"][0]["tags"] {
                 serde_json::Value::Null => {
                     println!("failed to deserialize json");
                     HashSet::<String>::new()
@@ -309,11 +276,14 @@ fn tag_all_images(
                                 continue;
                             }
                             ErrorKind::NotConnected => {
-                                println!("Failed to get online tags from gelbooru");
+                                println!("{}", err.to_string());
                                 long_quota = 0;
                             }
                             ErrorKind::InvalidData => {
                                 println!("Failed to parse json from sacenao");
+                            }
+                            ErrorKind::OutOfMemory => {
+                                println!("Saucenao Quota Exceed");
                                 long_quota = 0;
                             }
                             _ => {
@@ -328,7 +298,7 @@ fn tag_all_images(
                 // set maximum count to be 4, 
                 // so if an image has been tagged for 4 times, it will reset to 1.
                 let cnt_new = if cnt < 4 { cnt + 1 } else { 1 };
-                entry_to_add_back.push((&rel_path, cnt_new));
+                entry_to_add_back.push((rel_path, cnt_new));
             }
             None => {
                 eprintln!("Table inconsistancy");
@@ -340,6 +310,7 @@ fn tag_all_images(
             save_table(&table, table_path).expect("unable to save table");
         }
     }
+    for (rel_path, cnt) in entry_to_add_back { table.push(&rel_path, cnt); }
     save_table(&table, table_path).expect("unable to save table");
     // finished one complete scan. wait for next folder scan
     thread::sleep(time::Duration::from_secs(60 * rescan_interval_minutes)); // long request limit
@@ -380,13 +351,6 @@ fn read_table(path: &str) -> Table {
         }
     };
 
-    let vec = hashtable
-        .iter()
-        .map(|(s, u)| (u.clone(), s.as_str()))
-        .collect::<Vec<(u8, &str)>>();
-
-    let pq = BinaryHeap::from_iter(hashtable.iter().map(|(s, u)| (u.clone(), s.as_str())));
-
     Table::new(hashtable)
 }
 
@@ -416,29 +380,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         .set_default("cache_num", 3)?
         .add_source(config::File::new(config_path, config::FileFormat::Json))
         .build()?;
-    let album_path = config
-        .get_string("album_path")
-        .expect("album_path must be a string!");
-    let table_path = config
-        .get_string("table_path")
-        .expect("table_path must be a string!");
-    let api_key = config
-        .get_string("api_key")
-        .expect("api_key must be a string!");
-    let min_similarity = config
-        .get_float("min_similarity")
-        .expect("min_similarity must be a f64 float!");
-    let preserve_quota_percent = config
-        .get_float("preserve_quota_percent")
-        .expect("preserve_quota_percent must be a f64 float!");
-    let rescan_interval_minutes: u64 = config
-        .get_int("rescan_interval_minutes")?
-        .try_into()
-        .expect("cache_num must be an u64 integer!");
-    let cache_num: u64 = config
-        .get_int("cache_num")?
-        .try_into()
-        .expect("cache_num must be an u64 integer!");
+    let album_path = config.get_string("album_path")?;
+    let table_path = config.get_string("table_path")?;
+    let api_key = config.get_string("api_key")?;
+    let min_similarity = config.get_float("min_similarity")?;
+    let preserve_quota_percent = config.get_float("preserve_quota_percent")?;
+    let rescan_interval_minutes: u64 = config.get_int("rescan_interval_minutes")?.try_into()?;
+    let cache_num: u64 = config.get_int("cache_num")?.try_into()?;
     let url = format!(
         "https://saucenao.com/search.php?output_type=2&dbmask=16777216&numres=1&api_key={}",
         api_key
@@ -447,6 +395,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut table = read_table(&table_path);
     scan_folder(&album_path, &mut table)?;
     save_table(&table, &table_path).expect("Unable to save the table");
+
     loop {
         tag_all_images(
             &mut table,

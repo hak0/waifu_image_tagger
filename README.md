@@ -38,3 +38,18 @@ The status of tagging will be saved into a hashmap, and it will be synced to dis
 `preserve_quota_percent`: it will preserve some percent of quota so you can still use saucenao in browser. The value is between 0 ~ 100. Set it to 0 to disable the feature.   
 `rescan_interval_minutes`: after each rescan of all images, it will sleep for a while. The duration is set here.  
 `cache_num`: the table will be written to disk each time after cache_num images are tagged.
+
+## Ignore
+
+With the help of `ignore` crate, we can now specify a list of folders to ignore. Simply create a `.ignore` file under the album directory, e.g.
+
+```txt
+@eaDir
+*private*
+```
+
+When the program executes the scan, it will skip folders @eaDir(which is the index folder on Synology system), and any folder whose name contains "private".
+
+Be careful that once a image is added into the table(json file), it will still be scanned even if it is added into `.ignore` rule list.
+
+For further information about `ignore`, please read the [crate document](https://docs.rs/ignore/latest/ignore/).
