@@ -87,12 +87,12 @@ fn parse_config_from_file(config_path: &str) -> Result<WITConfig, Box<dyn Error>
     let album_path = config_builder.get_string("album_path")?;
     let table_path = config_builder.get_string("table_path")?;
     let api_key = config_builder.get_string("api_key")?;
-    let similarity_threshold = config_builder.get_float("min_similarity")?;
+    let similarity_threshold = config_builder.get_float("similarity_threshold")?;
     let preserve_quota_percent = config_builder.get_float("preserve_quota_percent")?;
     let rescan_interval_minutes: u64 = config_builder
         .get_int("rescan_interval_minutes")?
         .try_into()?;
-    let cache_num: u64 = config_builder.get_int("cache_num")?.try_into()?;
+    let flushtable_imgnum: u64 = config_builder.get_int("flushtable_imgnum")?.try_into()?;
     let saucenao_query_url = format!(
         "https://saucenao.com/search.php?output_type=2&dbmask=16777216&numres=1&api_key={}",
         api_key
@@ -103,7 +103,7 @@ fn parse_config_from_file(config_path: &str) -> Result<WITConfig, Box<dyn Error>
         similarity_threshold,
         preserve_quota_percent,
         rescan_interval_minutes,
-        flushtable_imgnum: cache_num,
+        flushtable_imgnum,
         saucenao_query_url,
     })
 }
