@@ -2,8 +2,8 @@
     "table_path": "/your_album_path/table.json",
     "album_path": "/your_album_path/",
     "api_key": "your_saucenao_api_key",
-    "min_similarity": 55.0,
+    "similarity_threshold": 55.0,
     "preserve_quota_percent": 25.0,
     "rescan_interval_minutes": 5,
-    "cache_num": 3
+    "flushtable_imgnum": 3
 }

@@ -1,6 +1,6 @@
 [package]
 name = "waifu_image_tagger"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["hako"]
 edition = "2021"
 
