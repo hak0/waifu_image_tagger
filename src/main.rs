@@ -7,8 +7,8 @@ use config::Config;
 use ignore::Walk;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
-use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
+use rand::{seq::IteratorRandom, thread_rng};
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fs::{self, File};
@@ -21,45 +21,51 @@ use std::time;
 
 #[derive(Clone, Default, Debug)]
 struct WITTable {
-    hashtable: HashMap<String, u8>,
-    pq: BinaryHeap<(Reverse<u8>, String)>,
+    btreetable: BTreeMap<String, u8>,
 }
 
 impl WITTable {
-    pub fn new(hashtable: HashMap<String, u8>) -> WITTable {
-        let pq = hashtable
-            .iter()
-            .map(|(s, &u)| (Reverse(u), s.clone()))
-            .collect();
-        WITTable { hashtable, pq }
+    pub fn new(hashtable: BTreeMap<String, u8>) -> WITTable {
+        WITTable { btreetable: hashtable }
     }
 
     pub fn push(&mut self, filename: &str, cnt: u8) {
-        self.hashtable.insert(filename.to_string(), cnt);
-        self.pq.push((Reverse(cnt), filename.to_string()));
+        self.btreetable.insert(filename.to_string(), cnt);
     }
 
     pub fn pop(&mut self) -> Option<(String, u8)> {
-        let result = self.pq.pop();
-        match result {
-            Some((cnt, filename)) => {
-                self.hashtable.remove(&filename);
-                Some((filename, cnt.0))
+        // traverse the table, pick the images with minimum cnt
+        if self.is_empty() {
+            None
+        } else {
+            let mut min_cnt = u8::MAX;
+            let mut image_candidates = Vec::new();
+            for (image, &cnt) in &self.btreetable {
+                if cnt < min_cnt {
+                    min_cnt = cnt;
+                    image_candidates.clear();
+                }
+                if cnt == min_cnt {
+                    image_candidates.push(image.to_owned());
+                }
             }
-            _ => None,
+            let mut rng = thread_rng();
+            let image = image_candidates.iter().choose(&mut rng).unwrap().to_owned();
+            self.btreetable.remove(&image);
+            Some((image, min_cnt))
         }
     }
 
     pub fn is_empty(&self) -> bool {
-        self.pq.is_empty()
+        self.btreetable.is_empty()
     }
 
     pub fn len(&self) -> usize {
-        self.pq.len()
+        self.btreetable.len()
     }
 
     pub fn contains(&self, filename: &str) -> bool {
-        self.hashtable.contains_key(filename)
+        self.btreetable.contains_key(filename)
     }
 }
 
@@ -390,19 +396,19 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
 fn save_table(table: &WITTable, path: &str) {
     let tmp_path = String::from(path) + "_tmp";
     let table_file = File::create(&tmp_path).expect("Failed to create table file");
-    serde_json::to_writer(table_file, &table.hashtable)
+    serde_json::to_writer(table_file, &table.btreetable)
         .expect("Failed to serialize table before saving!");
     fs::rename(&tmp_path, &path).expect("unable to save table!");
-    let covered = table.hashtable.iter().filter(|(_, &x)| x != 0).count();
+    let covered = table.btreetable.iter().filter(|(_, &x)| x != 0).count();
     println!(
         "Table Saved!  Images covered: {} / {} ",
         covered,
-        table.pq.len()
+        table.len()
     );
 }
 
 fn read_table(path: &str) -> WITTable {
-    fn read_hashtable(path: &str) -> Result<HashMap<String, u8>, Box<dyn Error>> {
+    fn read_hashtable(path: &str) -> Result<BTreeMap<String, u8>, Box<dyn Error>> {
         let table_file = File::open(path)?;
         let hashtable = serde_json::from_reader(table_file)?;
         Ok(hashtable)
@@ -412,7 +418,7 @@ fn read_table(path: &str) -> WITTable {
         Err(e) => {
             eprintln!("{}", e);
             println!("No existing table, create a new table");
-            HashMap::new()
+            BTreeMap::new()
         }
         Ok(hashtable) => {
             println!("Table loaded! Totally {} images!", hashtable.len());
