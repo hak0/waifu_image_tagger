@@ -1,6 +1,6 @@
 [package]
 name = "waifu_image_tagger"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["hako"]
 edition = "2021"
 
@@ -13,3 +13,4 @@ reqwest = { version = "*", features = ["blocking", "json", "multipart"] }
 clap = { version = "*", features = ["derive"] }
 config = "*"
 ignore = "*"
+rand = "*"
