@@ -368,8 +368,8 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
                 // re-push entry into table
                 // update table, increase current entry by 1
                 // set maximum count to be 4,
-                // so if an image has been tagged for 4 times, it will reset to 1.
-                let cnt_new = if cnt < 4 { cnt + 1 } else { 1 };
+                // so if an image has been tagged for 4 times, it will always remain at 4.
+                let cnt_new = if cnt < 4 { cnt + 1 } else { 4 };
                 entry_to_add_back.push((img_rel_path, cnt_new));
             }
             None => {
