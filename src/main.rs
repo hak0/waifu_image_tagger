@@ -8,7 +8,6 @@ use ignore::Walk;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
 use std::collections::{BTreeMap, HashSet};
-use rand::{seq::IteratorRandom, thread_rng};
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fs::{self, File};
@@ -34,25 +33,21 @@ impl WITTable {
     }
 
     pub fn pop(&mut self) -> Option<(String, u8)> {
-        // traverse the table, pick the images with minimum cnt
+        // traverse the table, pick the image with minimum cnt
         if self.is_empty() {
             None
         } else {
             let mut min_cnt = u8::MAX;
-            let mut image_candidates = Vec::new();
+            let mut image_candidate = String::new();
             for (image, &cnt) in &self.btreetable {
                 if cnt < min_cnt {
                     min_cnt = cnt;
-                    image_candidates.clear();
-                }
-                if cnt == min_cnt {
-                    image_candidates.push(image.to_owned());
+                    image_candidate = image.clone();
                 }
             }
-            let mut rng = thread_rng();
-            let image = image_candidates.iter().choose(&mut rng).unwrap().to_owned();
-            self.btreetable.remove(&image);
-            Some((image, min_cnt))
+            // get the first element from the minimum-cnt image candidates
+            self.btreetable.remove(&image_candidate);
+            Some((image_candidate, min_cnt))
         }
     }
 
@@ -66,6 +61,14 @@ impl WITTable {
 
     pub fn contains(&self, filename: &str) -> bool {
         self.btreetable.contains_key(filename)
+    }
+
+    pub fn decrease_all_cnt(&mut self) {
+        // decrease all value by 1 in the btreemap
+        for (_, cnt) in self.btreetable.iter_mut() {
+            assert!(cnt > &mut 0);
+            *cnt -= 1;
+        }
     }
 }
 
@@ -321,6 +324,7 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
     while long_quota > 0 && !table.is_empty() {
         match table.pop() {
             Some((img_rel_path, cnt)) => {
+                // tag the image
                 let img_abs_path = format!("{}{}", &config.album_path, &img_rel_path);
                 match tag_single_image(&config, &img_abs_path) {
                     Ok((long_remain, long_limit)) => {
@@ -368,8 +372,16 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
                 // re-push entry into table
                 // update table, increase current entry by 1
                 // set maximum count to be 4,
-                // so if an image has been tagged for 4 times, it will always remain at 4.
-                let cnt_new = if cnt < 4 { cnt + 1 } else { 4 };
+                //
+                // if the cnt is 4, which means all images reached the maximum cnt 4
+                // and no image has cnt==3. We will decrease the count for all images into 3.
+                // so that the image with cnt==3 will be tagged again.
+                let cnt_new = if cnt >= 4 {
+                    table.decrease_all_cnt();
+                    4
+                } else {
+                    cnt + 1
+                };
                 entry_to_add_back.push((img_rel_path, cnt_new));
             }
             None => {
