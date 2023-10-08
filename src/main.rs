@@ -4,6 +4,7 @@ extern crate rexiv2;
 extern crate serde_json;
 use clap::Parser;
 use config::Config;
+use filetime::{FileTime, set_file_mtime};
 use ignore::Walk;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
@@ -287,6 +288,11 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
         // union online tags into local tags
         let local_tags = get_local_tags(img_abs_path);
         if !local_tags.is_superset(&online_tags) {
+            // record image mtime before updating tags
+            let file_metadata = fs::metadata(img_abs_path).unwrap();
+            let mtime = FileTime::from_last_modification_time(&file_metadata);
+            println!("mtime: {}", mtime);
+            // write new tags
             let new_tags = local_tags
                 .union(&online_tags)
                 .into_iter()
@@ -301,6 +307,11 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
                 .expect("Unable to get tags");
             match metadata.save_to_file(img_abs_path) {
                 Err(_) => println!("Failed to save tags for {}", img_abs_path),
+                _ => (),
+            };
+            // recover mtime back
+            match set_file_mtime(Path::new(img_abs_path), mtime) {
+                Err(_) => println!("Failed to set mtime for {}", img_abs_path),
                 _ => (),
             };
         };
