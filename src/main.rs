@@ -291,7 +291,6 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
             // record image mtime before updating tags
             let file_metadata = fs::metadata(img_abs_path).unwrap();
             let mtime = FileTime::from_last_modification_time(&file_metadata);
-            println!("mtime: {}", mtime);
             // write new tags
             let new_tags = local_tags
                 .union(&online_tags)
