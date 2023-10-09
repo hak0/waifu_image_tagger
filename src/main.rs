@@ -33,6 +33,10 @@ impl WITTable {
         self.btreetable.insert(filename.to_string(), cnt);
     }
 
+    pub fn remove(&mut self, filename: &str) {
+        self.btreetable.remove(filename);
+    }
+
     pub fn pop(&mut self) -> Option<(String, u8)> {
         // traverse the table, pick the image with minimum cnt
         if self.is_empty() {
@@ -401,7 +405,16 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
         }
         // write table into disk if idx % cache_num == 0
         if entry_to_add_back.len() as u64 % config.flushtable_imgnum == 0 {
+            // temporarily write the "entry to add back" into table
+            for (rel_path, cnt) in &entry_to_add_back {
+                table.push(&rel_path, cnt.clone());
+            }
+            // save the table
             save_table(&table, &config.table_path);
+            // remove these "entry to add back" from table
+            for (rel_path, _) in &entry_to_add_back {
+                table.remove(&rel_path);
+            }
         }
     }
     for (rel_path, cnt) in entry_to_add_back {
