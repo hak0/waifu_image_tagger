@@ -2,9 +2,10 @@ extern crate clap;
 extern crate reqwest;
 extern crate rexiv2;
 extern crate serde_json;
+use chrono::DateTime;
 use clap::Parser;
 use config::Config;
-use filetime::{FileTime, set_file_mtime};
+use filetime::{set_file_mtime, FileTime};
 use ignore::Walk;
 use reqwest::blocking::Client;
 use rexiv2::Metadata;
@@ -26,7 +27,9 @@ struct WITTable {
 
 impl WITTable {
     pub fn new(hashtable: BTreeMap<String, u8>) -> WITTable {
-        WITTable { btreetable: hashtable }
+        WITTable {
+            btreetable: hashtable,
+        }
     }
 
     pub fn push(&mut self, filename: &str, cnt: u8) {
@@ -269,28 +272,53 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
             "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&id={}",
             gelbooru_id
         );
-        let online_tags = match &reqwest::blocking::get(&json_url)
+        // record image mtime before updating tags
+        let file_metadata = fs::metadata(img_abs_path).unwrap();
+        let mtime = FileTime::from_last_modification_time(&file_metadata);
+
+        // parse json response
+        let json_response = &reqwest::blocking::get(&json_url)
             .or(Err(network_err_gelbooru()))?
             .json::<serde_json::Value>()
-            .or(Err(parse_err()))?["post"][0]["tags"]
-        {
-            serde_json::Value::Null => {
+            .or(Err(parse_err()));
+        let online_tags = match json_response {
+            Err(_) => {
                 println!("failed to deserialize json");
                 HashSet::<String>::new()
             }
-            v => v
+            Result::Ok(v) => v["post"][0]["tags"]
                 .to_string()
                 .replace("\"", "")
                 .split(" ")
                 .map(|s| s.to_owned())
                 .collect::<HashSet<String>>(),
         };
+
+        let upload_date_mtime = match json_response {
+            Err(_) => {
+                println!("failed to deserialize json");
+                mtime
+            }
+            Result::Ok(v) => {
+                let upload_date_str = &v["post"][0]["created_at"].to_string();
+                println!("created_at");
+                println!("#{}#", upload_date_str);
+                match DateTime::parse_from_str(upload_date_str, "\"%a %b %d %H:%M:%S %z %Y\"") {
+                    Ok(v) => {
+                        println!("parse ok: {}", v);
+                        FileTime::from_unix_time(v.timestamp(), 0)
+                    }
+                    Err(e) => {
+                        println!("parse err: {:?}", e);
+                        mtime
+                    }
+                }
+            }
+        };
+        println!("upload_date_str: {}", upload_date_mtime.to_string());
         // union online tags into local tags
         let local_tags = get_local_tags(img_abs_path);
         if !local_tags.is_superset(&online_tags) {
-            // record image mtime before updating tags
-            let file_metadata = fs::metadata(img_abs_path).unwrap();
-            let mtime = FileTime::from_last_modification_time(&file_metadata);
             // write new tags
             let new_tags = local_tags
                 .union(&online_tags)
@@ -308,11 +336,12 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
                 Err(_) => println!("Failed to save tags for {}", img_abs_path),
                 _ => (),
             };
-            // recover mtime back
-            match set_file_mtime(Path::new(img_abs_path), mtime) {
-                Err(_) => println!("Failed to set mtime for {}", img_abs_path),
-                _ => (),
-            };
+
+        };
+        // recover mtime back
+        match set_file_mtime(Path::new(img_abs_path), upload_date_mtime) {
+            Err(_) => println!("Failed to set mtime for {}", img_abs_path),
+            _ => (),
         };
     }
     // output log
