@@ -192,7 +192,7 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
         )
     };
     let quota_exceed_err_saucenao =
-        || io::Error::new(ErrorKind::OutOfMemory, "Quota exceed for saucenao");
+        || io::Error::new(ErrorKind::PermissionDenied, "Quota exceed for saucenao");
     let network_err_gelbooru = || {
         io::Error::new(
             ErrorKind::NotConnected,
@@ -332,6 +332,7 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
 }
 
 fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
+    let mut table_shadow = table.clone();
     let mut entry_to_add_back = Vec::new();
     let mut is_startup = true;
     let mut long_quota: i64 = (&table).len() as i64;
@@ -372,7 +373,7 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
                             ErrorKind::InvalidData => {
                                 println!("Failed to parse json from sacenao");
                             }
-                            ErrorKind::OutOfMemory => {
+                            ErrorKind::PermissionDenied => {
                                 println!("Saucenao Quota Exceed");
                                 long_quota = 0;
                             }
@@ -396,6 +397,7 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
                 } else {
                     cnt + 1
                 };
+                table_shadow.push(&img_rel_path, cnt_new);
                 entry_to_add_back.push((img_rel_path, cnt_new));
             }
             None => {
@@ -405,16 +407,17 @@ fn tag_all_images(config: &WITConfig, table: &mut WITTable) {
         }
         // write table into disk if idx % cache_num == 0
         if entry_to_add_back.len() as u64 % config.flushtable_imgnum == 0 {
-            // temporarily write the "entry to add back" into table
-            for (rel_path, cnt) in &entry_to_add_back {
-                table.push(&rel_path, cnt.clone());
-            }
-            // save the table
-            save_table(&table, &config.table_path);
-            // remove these "entry to add back" from table
-            for (rel_path, _) in &entry_to_add_back {
-                table.remove(&rel_path);
-            }
+            // save the shadow table
+            // 
+            // the shadow table contains the entries popped from the main table
+            // those entries will be added back to the main table when the epoch ends
+            // (quota used up or main table is empty)
+            // 
+            // so when we interrupt an epoch, the popped entries are still saved in the json file
+            // 
+            // but the shadow table won't remove the image deleted from the main table,
+            // we have to wait for the save for the main table to remove these entries
+            save_table(&table_shadow, &config.table_path);
         }
     }
     for (rel_path, cnt) in entry_to_add_back {
