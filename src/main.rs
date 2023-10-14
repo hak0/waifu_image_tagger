@@ -33,10 +33,6 @@ impl WITTable {
         self.btreetable.insert(filename.to_string(), cnt);
     }
 
-    pub fn remove(&mut self, filename: &str) {
-        self.btreetable.remove(filename);
-    }
-
     pub fn pop(&mut self) -> Option<(String, u8)> {
         // traverse the table, pick the image with minimum cnt
         if self.is_empty() {
