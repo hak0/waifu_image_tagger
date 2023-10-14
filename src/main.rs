@@ -151,7 +151,7 @@ fn scan_folder(folder_path: &str, table: &mut WITTable) {
             .and_then(OsStr::to_str)
             .unwrap_or_default();
         match extension_str.to_lowercase().as_str() {
-            "png" | "jpg" | "bmp" | "jpeg" | "tif" | "tiff" | "webp" => {
+            "png" | "jpg" | "bmp" | "jpeg" | "tif" | "tiff" => {
                 let rel_path_str = abs_path_buf
                     .strip_prefix(folder_path)?
                     .to_str()
