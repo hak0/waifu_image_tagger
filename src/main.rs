@@ -308,8 +308,8 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
                 Err(_) => println!("Failed to save tags for {}", img_abs_path),
                 _ => (),
             };
-            // recover mtime back
-            match set_file_mtime(Path::new(img_abs_path), mtime) {
+            // recover mtime back, +1s
+            match set_file_mtime(Path::new(img_abs_path), FileTime::from_unix_time(mtime.unix_seconds() + 1, 0)) {
                 Err(_) => println!("Failed to set mtime for {}", img_abs_path),
                 _ => (),
             };
