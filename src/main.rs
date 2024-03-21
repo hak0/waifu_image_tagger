@@ -121,8 +121,8 @@ fn parse_config_from_file(config_path: &str) -> Result<WITConfig, Box<dyn Error>
 fn get_local_tags(imgpath: &str) -> HashSet<String> {
     match Metadata::new_from_path(imgpath) {
         Ok(metadata) => metadata
-            .get_tag_multiple_strings("Xmp.dc.subject")
-            .expect("failed to get xmp tag")
+            .get_tag_multiple_strings("Iptc.Application2.Keywords")
+            .expect("failed to get Iptc tag")
             .into_iter()
             .collect::<HashSet<String>>(),
         Err(err) => {
@@ -302,7 +302,7 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
                 img_abs_path
             ));
             metadata
-                .set_tag_multiple_strings("Xmp.dc.subject", &new_tags)
+                .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
                 .expect("Unable to get tags");
             match metadata.save_to_file(img_abs_path) {
                 Err(_) => println!("Failed to save tags for {}", img_abs_path),
