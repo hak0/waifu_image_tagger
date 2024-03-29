@@ -291,22 +291,24 @@ fn tag_single_image(config: &WITConfig, img_abs_path: &str) -> Result<(i64, i64)
             // record image mtime before updating tags
             let file_metadata = fs::metadata(img_abs_path).unwrap();
             let mtime = FileTime::from_last_modification_time(&file_metadata);
-            // write new tags
-            let new_tags = local_tags
-                .union(&online_tags)
-                .into_iter()
-                .map(|x| &**x)
-                .collect::<Vec<&str>>();
-            let metadata = Metadata::new_from_path(img_abs_path).expect(&format!(
-                "failed to get metadata from image {}",
-                img_abs_path
-            ));
-            metadata
-                .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
-                .expect("Unable to get tags");
-            match metadata.save_to_file(img_abs_path) {
-                Err(_) => println!("Failed to save tags for {}", img_abs_path),
-                _ => (),
+            {
+                // write new tags
+                let new_tags = local_tags
+                    .union(&online_tags)
+                    .into_iter()
+                    .map(|x| &**x)
+                    .collect::<Vec<&str>>();
+                let metadata = Metadata::new_from_path(img_abs_path).expect(&format!(
+                    "failed to get metadata from image {}",
+                    img_abs_path
+                ));
+                metadata
+                    .set_tag_multiple_strings("Iptc.Application2.Keywords", &new_tags)
+                    .expect("Unable to get tags");
+                match metadata.save_to_file(img_abs_path) {
+                    Err(_) => println!("Failed to save tags for {}", img_abs_path),
+                    _ => (),
+                };
             };
             // recover mtime back, +1s
             match set_file_mtime(Path::new(img_abs_path), FileTime::from_unix_time(mtime.unix_seconds() + 1, 0)) {
